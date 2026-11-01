@@ -1,0 +1,1499 @@
+{
+  "operations": [
+    {
+      "operation_id": "ensure_node_constraint",
+      "display_name": "Ensure Node Constraint",
+      "description": "Ensure uniqueness of the configured stable node ID within a label. Requires schema privileges.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "upsert_node",
+      "display_name": "Upsert Node",
+      "description": "Merge a node by stable ID and patch its flat properties. Null values remove properties.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "properties",
+          "value_type": "json",
+          "required": false,
+          "display_name": "Properties",
+          "schema": {
+            "type": "object"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "get_node",
+      "display_name": "Get Node",
+      "description": "Read a node by label and stable ID.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "find_nodes",
+      "display_name": "Find Nodes",
+      "description": "Read up to 100 nodes with an optional property equality filter.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "filter",
+          "value_type": "json",
+          "required": false,
+          "display_name": "Filter",
+          "schema": {
+            "type": "object"
+          }
+        },
+        {
+          "name": "limit",
+          "value_type": "integer",
+          "required": false,
+          "display_name": "Limit",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "delete_node",
+      "display_name": "Delete Node",
+      "description": "Delete a node. Detach must be explicitly enabled to remove its incident relationships.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "detach",
+          "value_type": "boolean",
+          "required": false,
+          "display_name": "Detach",
+          "schema": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "upsert_relationship",
+      "display_name": "Upsert Relationship",
+      "description": "Merge a directed relationship by endpoints, type and stable relationship ID, then patch properties.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "from_label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "From Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "from_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "From Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "to_label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "To Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "to_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "To Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "relationship_type",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Relationship Type",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "relationship_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Relationship Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "properties",
+          "value_type": "json",
+          "required": false,
+          "display_name": "Properties",
+          "schema": {
+            "type": "object"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "find_relationships",
+      "display_name": "Find Relationships",
+      "description": "Read bounded incident relationships and neighbors in the selected direction.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "relationship_type",
+          "value_type": "text",
+          "required": false,
+          "display_name": "Relationship Type",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "direction",
+          "value_type": "text",
+          "required": false,
+          "display_name": "Direction",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "out",
+              "in",
+              "both"
+            ],
+            "default": "both"
+          }
+        },
+        {
+          "name": "limit",
+          "value_type": "integer",
+          "required": false,
+          "display_name": "Limit",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "delete_relationship",
+      "display_name": "Delete Relationship",
+      "description": "Delete a directed relationship identified by endpoints, type and relationship ID.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "from_label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "From Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "from_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "From Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "to_label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "To Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "to_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "To Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "relationship_type",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Relationship Type",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "relationship_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Relationship Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "ensure_vector_index",
+      "display_name": "Ensure Vector Index",
+      "description": "Create or verify a node vector index with exact label, property, dimensions and similarity.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "label",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Label",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "embedding_property",
+          "value_type": "text",
+          "required": false,
+          "display_name": "Embedding Property",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64,
+            "default": "embedding"
+          }
+        },
+        {
+          "name": "dimensions",
+          "value_type": "integer",
+          "required": true,
+          "display_name": "Dimensions",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4096
+          }
+        },
+        {
+          "name": "similarity",
+          "value_type": "text",
+          "required": false,
+          "display_name": "Similarity",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "cosine",
+              "euclidean"
+            ],
+            "default": "cosine"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "get_vector_index",
+      "display_name": "Get Vector Index",
+      "description": "Read a node vector index schema and ONLINE/POPULATING state.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "list_vector_indexes",
+      "display_name": "List Vector Indexes",
+      "description": "List up to 100 vector indexes.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "limit",
+          "value_type": "integer",
+          "required": false,
+          "display_name": "Limit",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "await_vector_index",
+      "display_name": "Await Vector Index",
+      "description": "Wait up to the bounded timeout for an existing node vector index to become ONLINE.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "wait_seconds",
+          "value_type": "integer",
+          "required": false,
+          "display_name": "Wait Seconds",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 10
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "drop_vector_index",
+      "display_name": "Drop Vector Index",
+      "description": "Drop a vector index only with confirm=true. Documents remain in the graph.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "confirm",
+          "value_type": "boolean",
+          "required": true,
+          "display_name": "Confirm",
+          "schema": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "upsert_vector_node",
+      "display_name": "Upsert Vector Node",
+      "description": "Merge a node with an embedding and metadata, validating dimensions against the selected index.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "vector",
+          "value_type": "json",
+          "required": true,
+          "display_name": "Vector",
+          "schema": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4096,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "name": "properties",
+          "value_type": "json",
+          "required": false,
+          "display_name": "Properties",
+          "schema": {
+            "type": "object"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "vector_search",
+      "display_name": "Vector Search",
+      "description": "Search native node vectors and return scores plus node metadata for downstream RAG. Embeddings are omitted by default.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "vector",
+          "value_type": "json",
+          "required": true,
+          "display_name": "Vector",
+          "schema": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4096,
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "name": "limit",
+          "value_type": "integer",
+          "required": false,
+          "display_name": "Limit",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        },
+        {
+          "name": "min_score",
+          "value_type": "number",
+          "required": false,
+          "display_name": "Min Score",
+          "schema": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0
+          }
+        },
+        {
+          "name": "include_embeddings",
+          "value_type": "boolean",
+          "required": false,
+          "display_name": "Include Embeddings",
+          "schema": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    },
+    {
+      "operation_id": "delete_vector_node",
+      "display_name": "Delete Vector Node",
+      "description": "Delete an indexed node by stable ID; the vector index updates with the graph.",
+      "operation_kind": "action",
+      "workflow_visible": true,
+      "connection_type_ids": [
+        "neo4j"
+      ],
+      "category": "data",
+      "inputs": [
+        {
+          "name": "connection_ref",
+          "value_type": "connection_ref",
+          "required": true,
+          "display_name": "Connection"
+        },
+        {
+          "name": "index_name",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Index Name",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        {
+          "name": "node_id",
+          "value_type": "text",
+          "required": true,
+          "display_name": "Node Id",
+          "schema": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        {
+          "name": "detach",
+          "value_type": "boolean",
+          "required": false,
+          "display_name": "Detach",
+          "schema": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "records",
+          "value_type": "json"
+        },
+        {
+          "name": "count",
+          "value_type": "integer"
+        },
+        {
+          "name": "applied",
+          "value_type": "boolean"
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ]
+    }
+  ]
+}

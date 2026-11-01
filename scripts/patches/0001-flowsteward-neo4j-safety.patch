@@ -1,0 +1,353 @@
+diff --git a/internal/sources/neo4j/neo4j.go b/internal/sources/neo4j/neo4j.go
+--- a/internal/sources/neo4j/neo4j.go
++++ b/internal/sources/neo4j/neo4j.go
+@@ -16,6 +16,7 @@
+ 
+ import (
+ 	"context"
++ "time"
+ 	"fmt"
+ 
+ 	"github.com/goccy/go-yaml"
+@@ -57,6 +58,7 @@
+ 	User     string `yaml:"user" validate:"required"`
+ 	Password string `yaml:"password" validate:"required"`
+ 	Database string `yaml:"database" validate:"required"`
++ AllowPrivate bool `yaml:"allowPrivate"`
+ }
+ 
+ func (r Config) SourceConfigType() string {
+@@ -64,14 +66,17 @@
+ }
+ 
+ func (r Config) Initialize(ctx context.Context, tracer trace.Tracer) (sources.Source, error) {
+-	driver, err := initNeo4jDriver(ctx, tracer, r.Uri, r.User, r.Password, r.Name)
++	ctx,cancel:=context.WithTimeout(ctx,30*time.Second)
++ defer cancel()
++ driver, err := initNeo4jDriver(ctx, tracer, r.Uri, r.User, r.Password, r.Name, r.AllowPrivate)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("unable to create driver: %w", err)
+ 	}
+ 
+ 	err = driver.VerifyConnectivity(ctx)
+ 	if err != nil {
+-		return nil, fmt.Errorf("unable to connect successfully: %w", err)
++		_ = driver.Close(ctx)
++ return nil, fmt.Errorf("unable to connect successfully: %w", err)
+ 	}
+ 
+ 	if r.Database == "" {
+@@ -123,41 +128,29 @@
+ 		cypherStr = "EXPLAIN " + cypherStr
+ 	}
+ 
+-	config := neo4j.ExecuteQueryWithDatabase(s.Neo4jDatabase())
+-	results, err := neo4j.ExecuteQuery[*neo4j.EagerResult](ctx, s.Neo4jDriver(), cypherStr, params,
+-		neo4j.EagerResultTransformer, config)
+-	if err != nil {
+-		return nil, fmt.Errorf("unable to execute query: %w", err)
+-	}
+-
+-	// If dry run, return the summary information only
+-	if dryRun {
+-		summary := results.Summary
+-		plan := summary.Plan()
+-		execPlan := map[string]any{
+-			"queryType":     cf.Type.String(),
+-			"statementType": summary.QueryType(),
+-			"operator":      plan.Operator(),
+-			"arguments":     plan.Arguments(),
+-			"identifiers":   plan.Identifiers(),
+-			"childrenCount": len(plan.Children()),
+-		}
+-		if len(plan.Children()) > 0 {
+-			execPlan["children"] = addPlanChildren(plan)
+-		}
+-		return []map[string]any{execPlan}, nil
+-	}
+-
+-	var out []map[string]any
+-	keys := results.Keys
+-	records := results.Records
+-	for _, record := range records {
+-		vMap := make(map[string]any)
+-		for col, value := range record.Values {
+-			vMap[keys[col]] = helpers.ConvertValue(value)
+-		}
+-		out = append(out, vMap)
+-	}
++ // Explicit transactions run once; bounded-result failures roll back before commit.
++ ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
++ defer cancel()
++ mode := neo4j.AccessModeWrite
++ if readOnly { mode = neo4j.AccessModeRead }
++ session := s.Driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: s.Database, AccessMode: mode, FetchSize: 32})
++ defer func(){cleanup,done:=context.WithTimeout(context.Background(),3*time.Second);defer done();_ = session.Close(cleanup)}()
++ tx, err := session.BeginTransaction(ctx, neo4j.WithTxTimeout(25*time.Second))
++ if err != nil { return nil, fmt.Errorf("unable to begin transaction: %w", err) }
++ defer func(){cleanup,done:=context.WithTimeout(context.Background(),3*time.Second);defer done();_ = tx.Close(cleanup)}()
++ cursor, err := tx.Run(ctx, cypherStr, params)
++ if err != nil { return nil, fmt.Errorf("unable to execute query: %w", err) }
++ out := make([]map[string]any, 0)
++ totalBytes := 2
++ for cursor.Next(ctx) {
++   row := make(map[string]any)
++   record := cursor.Record()
++   for i, key := range record.Keys { row[key] = flowStewardValue(helpers.ConvertValue(record.Values[i])) }
++   if err := flowStewardAppend(&out, &totalBytes, row); err != nil { cancel(); return nil, err }
++ }
++ if err := cursor.Err(); err != nil { return nil, fmt.Errorf("unable to read query: %w", err) }
++ if _, err := cursor.Consume(ctx); err != nil { return nil, fmt.Errorf("unable to consume query: %w", err) }
++ if err := tx.Commit(ctx); err != nil { return nil, fmt.Errorf("unable to commit query: %w", err) }
+ 
+ 	return out, nil
+ }
+@@ -180,18 +173,26 @@
+ 	return children
+ }
+ 
+-func initNeo4jDriver(ctx context.Context, tracer trace.Tracer, uri, user, password, name string) (neo4j.Driver, error) {
++func initNeo4jDriver(ctx context.Context, tracer trace.Tracer, uri, user, password, name string, allowPrivate bool) (neo4j.Driver, error) {
+ 	//nolint:all // Reassigned ctx
+ 	ctx, span := sources.InitConnectionSpan(ctx, tracer, SourceType, name)
+ 	defer span.End()
+ 
+-	auth := neo4j.BasicAuth(user, password, "")
++	encrypted, err := flowStewardURI(uri)
++ if err != nil { return nil, err }
++ auth := neo4j.BasicAuth(user, password, "")
+ 	userAgent, err := util.UserAgentFromContext(ctx)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+ 	driver, err := neo4j.NewDriver(uri, auth, func(config *neo4jconf.Config) {
+ 		config.UserAgent = userAgent
++ config.MaxTransactionRetryTime = 0
++ config.MaxConnectionPoolSize = 4
++ config.ConnectionAcquisitionTimeout = 10*time.Second
++ config.SocketConnectTimeout = 10*time.Second
++ config.FetchSize = 32
++ config.SocketDialer = flowStewardDialer{tls: encrypted, allowPrivate: allowPrivate}.DialContext
+ 	})
+ 	if err != nil {
+ 		return nil, fmt.Errorf("unable to create connection driver: %w", err)
+diff --git a/internal/sources/neo4j/flowsteward_policy.go b/internal/sources/neo4j/flowsteward_policy.go
+new file mode 100644
+--- /dev/null
++++ b/internal/sources/neo4j/flowsteward_policy.go
+@@ -0,0 +1,86 @@
++package neo4j
++import("context"; "encoding/json"; "fmt"; "net"; "net/netip"; "net/url"; "strconv"; "time")
++func flowStewardURI(raw string) (bool,error) {
++ u,err:=url.Parse(raw)
++ if err!=nil || u.Hostname()=="" || u.User!=nil || u.RawQuery!="" || u.Fragment!="" || (u.Path!="" && u.Path!="/") {return false,fmt.Errorf("invalid direct Bolt URI")}
++ if u.Scheme!="bolt" && u.Scheme!="bolt+s" { return false,fmt.Errorf("only bolt and bolt+s are supported") }
++ return u.Scheme=="bolt+s",nil
++}
++func flowStewardValue(value any) any {
++ switch v:=value.(type) {
++ case int64: if v>9007199254740991 || v < -9007199254740991 {return map[string]any{"$integer":strconv.FormatInt(v,10)}}; return v
++ case []any: for i:=range v {v[i]=flowStewardValue(v[i])};return v
++ case map[string]any: for k,x:=range v {v[k]=flowStewardValue(x)};return v
++ default:return value
++ }
++}
++func flowStewardAppend(rows *[]map[string]any, total *int, row map[string]any) error {
++ if len(*rows)>=100 {return fmt.Errorf("Neo4j response exceeds result row limit")}
++ encoded,err:=json.Marshal(row); if err!=nil{return fmt.Errorf("Neo4j response is not JSON serializable")}
++ size:=len(encoded); if len(*rows)>0 {size++}
++ if *total+size>480*1024 {return fmt.Errorf("Neo4j response exceeds result byte limit")}
++ *total+=size;*rows=append(*rows,row);return nil
++}
++var flowStewardReserved = []string{
++	"0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16", "172.16.0.0/12", "192.0.0.0/24", "192.0.2.0/24", "192.168.0.0/16", "198.18.0.0/15", "198.51.100.0/24", "203.0.113.0/24", "224.0.0.0/4", "240.0.0.0/4",
++	"::/128", "::1/128", "64:ff9b::/96", "64:ff9b:1::/48", "100::/64", "2001::/23", "2001:db8::/32", "2002::/16", "3fff::/20", "fc00::/7", "fe80::/10", "ff00::/8",
++}
++
++func flowStewardAddressAllowed(raw string, tls, allowPrivate bool) error {
++	ip, err := netip.ParseAddr(raw)
++	if err != nil {
++		return fmt.Errorf("invalid destination address")
++	}
++	ip = ip.Unmap()
++	private := !ip.IsGlobalUnicast() || ip.IsPrivate()
++	for _, value := range flowStewardReserved {
++		if netip.MustParsePrefix(value).Contains(ip) {
++			private = true
++			break
++		}
++	}
++	// IPv6 public unicast currently lives in 2000::/3; reject other special ranges.
++	if ip.Is6() && !netip.MustParsePrefix("2000::/3").Contains(ip) {
++		private = true
++	}
++	if private && !allowPrivate {
++		return fmt.Errorf("destination is not a public address")
++	}
++	if !private && !tls {
++		return fmt.Errorf("TLS is required for public destinations")
++	}
++	return nil
++}
++
++type flowStewardDialer struct{ tls, allowPrivate bool }
++
++func (d flowStewardDialer) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
++	host, port, err := net.SplitHostPort(address)
++	if err != nil {
++		return nil, fmt.Errorf("invalid destination")
++	}
++	addresses, err := net.DefaultResolver.LookupIPAddr(ctx, host)
++	if err != nil {
++		return nil, fmt.Errorf("destination lookup failed")
++	}
++	if len(addresses) == 0 {
++		return nil, fmt.Errorf("destination has no addresses")
++	}
++	for _, a := range addresses {
++		if a.Zone != "" {
++			return nil, fmt.Errorf("scoped destination is forbidden")
++		}
++		if err = flowStewardAddressAllowed(a.IP.String(), d.tls, d.allowPrivate); err != nil {
++			return nil, err
++		}
++	}
++	dialer := net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}
++	for _, a := range addresses {
++		connection, e := dialer.DialContext(ctx, network, net.JoinHostPort(a.IP.String(), port))
++		if e == nil {
++			return connection, nil
++		}
++		err = e
++	}
++	return nil, fmt.Errorf("destination connection failed: %w", err)
++}
+diff --git a/internal/sources/neo4j/flowsteward_policy_test.go b/internal/sources/neo4j/flowsteward_policy_test.go
+new file mode 100644
+--- /dev/null
++++ b/internal/sources/neo4j/flowsteward_policy_test.go
+@@ -0,0 +1,24 @@
++package neo4j
++import("testing";"encoding/json";"strings";"context";"time";"net";"fmt")
++func TestFlowStewardPolicy(t *testing.T){
++ for _, tc:=range []struct{ip string; tls,private,want bool}{{"8.8.8.8",true,false,true},{"8.8.8.8",false,true,false},{"127.0.0.1",true,false,false},{"127.0.0.1",false,true,true},{"::ffff:127.0.0.1",true,false,false},{"169.254.169.254",true,false,false},{"100.64.0.1",true,false,false},{"2001:db8::1",true,false,false},{"2606:4700:4700::1111",true,false,true}} {if got:=flowStewardAddressAllowed(tc.ip,tc.tls,tc.private)==nil;got!=tc.want {t.Fatalf("%s: %v",tc.ip,got)}}
++ for _,uri:=range []string{"neo4j+s://example.com","bolt+ssc://example.com","bolt+unix:///tmp/socket","bolt+s://user:secret@example.com","bolt+s://example.com?x=y"} {if _,err:=flowStewardURI(uri);err==nil{t.Fatal(uri)}}
++ for _,uri:=range []string{"bolt+s://example.com:7687","bolt://localhost:7687"} {if _,err:=flowStewardURI(uri);err!=nil{t.Fatal(err)}}
++}
++func TestFlowStewardResults(t *testing.T){
++ encoded,err:=json.Marshal(flowStewardValue(map[string]any{"large":int64(9223372036854775807),"small":int64(23),"nested":[]any{int64(-9223372036854775807)}}));if err!=nil{t.Fatal(err)}
++ if !strings.Contains(string(encoded),`"$integer":"9223372036854775807"`)||!strings.Contains(string(encoded),`"small":23`){t.Fatal(string(encoded))}
++ rows:=make([]map[string]any,0);total:=2
++ for i:=0;i<100;i++ {if err:=flowStewardAppend(&rows,&total,map[string]any{"i":i});err!=nil{t.Fatal(err)}}
++ if err:=flowStewardAppend(&rows,&total,map[string]any{});err==nil{t.Fatal("row overflow accepted")}
++ rows=rows[:0];total=2
++ if err:=flowStewardAppend(&rows,&total,map[string]any{"huge":strings.Repeat("x",480*1024)});err==nil{t.Fatal("byte overflow accepted")}
++}
++func TestFlowStewardDialPolicyBeforeConnect(t *testing.T){
++ listener,err:=net.Listen("tcp","127.0.0.1:0");if err!=nil{t.Fatal(err)};defer listener.Close()
++ ctx,cancel:=context.WithTimeout(context.Background(),time.Second);defer cancel()
++ d:=flowStewardDialer{tls:true}
++ if conn,err:=d.DialContext(ctx,"tcp",listener.Addr().String());err==nil {conn.Close();t.Fatal("private destination accepted")}
++ d.allowPrivate=true
++ conn,err:=d.DialContext(ctx,"tcp",listener.Addr().String());if err!=nil{t.Fatal(fmt.Sprint(err))};conn.Close()
++}
+diff --git a/internal/tools/neo4j/neo4jcypher/neo4jcypher.go b/internal/tools/neo4j/neo4jcypher/neo4jcypher.go
+--- a/internal/tools/neo4j/neo4jcypher/neo4jcypher.go
++++ b/internal/tools/neo4j/neo4jcypher/neo4jcypher.go
+@@ -54,7 +54,9 @@
+ 	Type         string                 `yaml:"type" validate:"required"`
+ 	Source       string                 `yaml:"source" validate:"required"`
+ 	Description  string                 `yaml:"description" validate:"required"`
+-	Statement    string                 `yaml:"statement" validate:"required"`
++	StaticParameters string `yaml:"staticParameters"`
++ ReadOnly bool `yaml:"readOnly"`
++ Statement    string                 `yaml:"statement" validate:"required"`
+ 	AuthRequired []string               `yaml:"authRequired"`
+ 	Parameters   parameters.Parameters  `yaml:"parameters"`
+ 	Annotations  *tools.ToolAnnotations `yaml:"annotations,omitempty"`
+@@ -70,7 +72,11 @@
+ }
+ 
+ func (cfg Config) Initialize(srcs map[string]sources.Source) (tools.Tool, error) {
+-	// finish tool setup
++	if cfg.StaticParameters != "" {
++ if len(cfg.Parameters)>0 {return nil,fmt.Errorf("staticParameters cannot be combined with parameters")}
++ if _,err:=flowStewardStaticParameters(cfg.StaticParameters);err!=nil{return nil,err}
++ }
++ // finish tool setup
+ 	t := Tool{
+ 		Config:   cfg,
+ 		manifest: tools.Manifest{Description: cfg.Description, Parameters: cfg.Parameters.Manifest(), AuthRequired: cfg.AuthRequired},
+@@ -93,7 +99,11 @@
+ 	}
+ 
+ 	paramsMap := params.AsMap()
+-	resp, err := source.RunQuery(ctx, t.Statement, paramsMap, false, false)
++ if t.StaticParameters != "" {
++ paramsMap,err=flowStewardStaticParameters(t.StaticParameters)
++ if err!=nil{return nil,util.NewAgentError("invalid static parameters",err)}
++ }
++	resp, err := source.RunQuery(ctx, t.Statement, paramsMap, t.ReadOnly, false)
+ 	if err != nil {
+ 		return nil, util.ProcessGeneralError(err)
+ 	}
+@@ -129,7 +139,8 @@
+ }
+ 
+ func (t Tool) GetAnnotations() *tools.ToolAnnotations {
+-	return tools.GetAnnotationsOrDefault(t.Annotations, tools.NewReadOnlyAnnotations)
++	if t.ReadOnly { return tools.GetAnnotationsOrDefault(t.Annotations, tools.NewReadOnlyAnnotations) }
++ return tools.GetAnnotationsOrDefault(t.Annotations, tools.NewDestructiveAnnotations)
+ }
+ 
+ func (t Tool) ToConfig() tools.ToolConfig {
+diff --git a/internal/tools/neo4j/neo4jcypher/flowsteward_parameters.go b/internal/tools/neo4j/neo4jcypher/flowsteward_parameters.go
+new file mode 100644
+--- /dev/null
++++ b/internal/tools/neo4j/neo4jcypher/flowsteward_parameters.go
+@@ -0,0 +1,20 @@
++package neo4jcypher
++import("encoding/json";"fmt";"io";"math";"strings")
++func flowStewardStaticParameters(raw string)(map[string]any,error){
++ decoder:=json.NewDecoder(strings.NewReader(raw));decoder.UseNumber()
++ var value map[string]any
++ if err:=decoder.Decode(&value);err!=nil||value==nil{return nil,fmt.Errorf("staticParameters must be a JSON object")}
++ var extra any
++ if err:=decoder.Decode(&extra);err!=io.EOF{return nil,fmt.Errorf("staticParameters must contain one JSON object")}
++ normalized,err:=flowStewardNumberTypes(value);if err!=nil{return nil,err};return normalized.(map[string]any),nil
++}
++func flowStewardNumberTypes(value any)(any,error){
++ switch v:=value.(type){
++ case json.Number:
++ if !strings.ContainsAny(string(v),".eE"){number,err:=v.Int64();if err!=nil{return nil,fmt.Errorf("integer parameter outside signed 64-bit range")};return number,nil}
++ number,err:=v.Float64();if err!=nil||math.IsNaN(number)||math.IsInf(number,0){return nil,fmt.Errorf("invalid floating point parameter")};return number,nil
++ case map[string]any:for key,item:=range v{converted,err:=flowStewardNumberTypes(item);if err!=nil{return nil,err};v[key]=converted};return v,nil
++ case []any:for i,item:=range v{converted,err:=flowStewardNumberTypes(item);if err!=nil{return nil,err};v[i]=converted};return v,nil
++ default:return value,nil
++ }
++}
+diff --git a/internal/tools/neo4j/neo4jcypher/flowsteward_parameters_test.go b/internal/tools/neo4j/neo4jcypher/flowsteward_parameters_test.go
+new file mode 100644
+--- /dev/null
++++ b/internal/tools/neo4j/neo4jcypher/flowsteward_parameters_test.go
+@@ -0,0 +1,8 @@
++package neo4jcypher
++import("testing";"reflect")
++func TestFlowStewardStaticNumberKinds(t *testing.T){
++ got,err:=flowStewardStaticParameters(`{"integer":1,"float":1.0,"exponent":1e0,"nested":{"value":-9223372036854775808},"vector":[0.1,0.2],"null":null}`);if err!=nil{t.Fatal(err)}
++ want:=map[string]any{"integer":int64(1),"float":float64(1),"exponent":float64(1),"nested":map[string]any{"value":int64(-9223372036854775808)},"vector":[]any{0.1,0.2},"null":nil}
++ if !reflect.DeepEqual(got,want){t.Fatalf("got %#v",got)}
++}
++func TestFlowStewardRejectMalformedStatic(t *testing.T){for _,raw:=range []string{`null`,`[]`,`{"x":`,`{"x":1} {}`,`{"x":9223372036854775808}`,`{"x":1e9999}`,`{"x":NaN}`} {if _,err:=flowStewardStaticParameters(raw);err==nil{t.Fatalf("accepted %s",raw)}}}
+diff --git a/internal/tools/neo4j/neo4jexecutecypher/classifier/classifier.go b/internal/tools/neo4j/neo4jexecutecypher/classifier/classifier.go
+--- a/internal/tools/neo4j/neo4jexecutecypher/classifier/classifier.go
++++ b/internal/tools/neo4j/neo4jexecutecypher/classifier/classifier.go
+@@ -128,7 +128,7 @@
+ 	}
+ 	// A list of procedure prefixes known to perform read operations.
+ 	readProceduresList := []string{
+-		"apoc.meta", "apoc.help", "apoc.version", "apoc.text", "apoc.math", "apoc.coll",
++		"db.index.vector.queryNodes", "db.index.vector.queryRelationships", "db.awaitIndex", "db.awaitIndexes", "apoc.meta", "apoc.help", "apoc.version", "apoc.text", "apoc.math", "apoc.coll",
+ 		"apoc.path", "apoc.algo", "apoc.date", "db.labels", "db.propertyKeys",
+ 		"db.relationshipTypes", "db.schema", "db.indexes", "db.constraints",
+ 		"dbms.components", "dbms.listConfig", "gds.graph.list", "gds.util",

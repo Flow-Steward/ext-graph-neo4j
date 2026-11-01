@@ -1,0 +1,14 @@
+{
+  "tag": "v1.3.0",
+  "commit": "b0010060a939455d91e4f8ba62dc3e72b1892469",
+  "go_image": "golang:1.26.2-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19",
+  "source_date_epoch": 1779400183,
+  "patch": "scripts/patches/0001-flowsteward-neo4j-safety.patch",
+  "patch_sha256": "542144e185b8fccc2d3c045a7709a3a9ae61f5b5e4d500ca4b743b3c4587e6f8",
+  "driver": {"module": "github.com/neo4j/neo4j-go-driver/v6", "version": "v6.0.0", "module_sum": "h1:xVAi6YLOfzXUx+1Lc/F2dUhpbN76BfKleZbAlnDFRiA=", "patch": "scripts/patches/0002-neo4j-driver-socket-dialer.patch", "patch_sha256": "6cfca6ece9f2ae66892045a203fbcc736985c1d9b53219f9a90dbe60b6e6b575"},
+  "packages": ["github.com/googleapis/mcp-toolbox/internal/sources/neo4j", "github.com/googleapis/mcp-toolbox/internal/tools/neo4j/neo4jcypher"],
+  "binaries": {
+    "linux-amd64": {"sha256": "141cb96b9029d87bce7fbaebb292770291f684d0ba80794ebd0c09ce59001824", "size": 26730622},
+    "linux-arm64": {"sha256": "2e6552b1f2d1b49f858a8f8a3e5054a59cee93601a24e69138b095a0c851a19b", "size": 25034878}
+  }
+}

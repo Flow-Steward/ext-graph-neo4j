@@ -1,0 +1,10 @@
+/bin/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.fs-python/
+/dev-wheels/
+/dist/
+/logs/
+/tests/live-neo4j.local.json

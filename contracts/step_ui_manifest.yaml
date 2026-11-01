@@ -1,0 +1,418 @@
+{
+  "forms": [
+    {
+      "operation_id": "ensure_node_constraint",
+      "title": "Ensure Node Constraint",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        }
+      ]
+    },
+    {
+      "operation_id": "upsert_node",
+      "title": "Upsert Node",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "widget_type": "json",
+          "label": "Properties",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "get_node",
+      "title": "Get Node",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        }
+      ]
+    },
+    {
+      "operation_id": "find_nodes",
+      "title": "Find Nodes",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "filter",
+          "widget_type": "json",
+          "label": "Filter",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "widget_type": "integer",
+          "label": "Limit",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "delete_node",
+      "title": "Delete Node",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        },
+        {
+          "name": "detach",
+          "widget_type": "boolean",
+          "label": "Detach",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "upsert_relationship",
+      "title": "Upsert Relationship",
+      "fields": [
+        {
+          "name": "from_label",
+          "widget_type": "textarea",
+          "label": "From Label",
+          "required": true
+        },
+        {
+          "name": "from_id",
+          "widget_type": "textarea",
+          "label": "From Id",
+          "required": true
+        },
+        {
+          "name": "to_label",
+          "widget_type": "textarea",
+          "label": "To Label",
+          "required": true
+        },
+        {
+          "name": "to_id",
+          "widget_type": "textarea",
+          "label": "To Id",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "widget_type": "textarea",
+          "label": "Relationship Type",
+          "required": true
+        },
+        {
+          "name": "relationship_id",
+          "widget_type": "textarea",
+          "label": "Relationship Id",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "widget_type": "json",
+          "label": "Properties",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "find_relationships",
+      "title": "Find Relationships",
+      "fields": [
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "widget_type": "textarea",
+          "label": "Relationship Type",
+          "required": false
+        },
+        {
+          "name": "direction",
+          "widget_type": "textarea",
+          "label": "Direction",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "widget_type": "integer",
+          "label": "Limit",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "delete_relationship",
+      "title": "Delete Relationship",
+      "fields": [
+        {
+          "name": "from_label",
+          "widget_type": "textarea",
+          "label": "From Label",
+          "required": true
+        },
+        {
+          "name": "from_id",
+          "widget_type": "textarea",
+          "label": "From Id",
+          "required": true
+        },
+        {
+          "name": "to_label",
+          "widget_type": "textarea",
+          "label": "To Label",
+          "required": true
+        },
+        {
+          "name": "to_id",
+          "widget_type": "textarea",
+          "label": "To Id",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "widget_type": "textarea",
+          "label": "Relationship Type",
+          "required": true
+        },
+        {
+          "name": "relationship_id",
+          "widget_type": "textarea",
+          "label": "Relationship Id",
+          "required": true
+        }
+      ]
+    },
+    {
+      "operation_id": "ensure_vector_index",
+      "title": "Ensure Vector Index",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "label",
+          "widget_type": "textarea",
+          "label": "Label",
+          "required": true
+        },
+        {
+          "name": "embedding_property",
+          "widget_type": "textarea",
+          "label": "Embedding Property",
+          "required": false
+        },
+        {
+          "name": "dimensions",
+          "widget_type": "integer",
+          "label": "Dimensions",
+          "required": true
+        },
+        {
+          "name": "similarity",
+          "widget_type": "textarea",
+          "label": "Similarity",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "get_vector_index",
+      "title": "Get Vector Index",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "operation_id": "list_vector_indexes",
+      "title": "List Vector Indexes",
+      "fields": [
+        {
+          "name": "limit",
+          "widget_type": "integer",
+          "label": "Limit",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "await_vector_index",
+      "title": "Await Vector Index",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "wait_seconds",
+          "widget_type": "integer",
+          "label": "Wait Seconds",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "drop_vector_index",
+      "title": "Drop Vector Index",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "confirm",
+          "widget_type": "boolean",
+          "label": "Confirm",
+          "required": true
+        }
+      ]
+    },
+    {
+      "operation_id": "upsert_vector_node",
+      "title": "Upsert Vector Node",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        },
+        {
+          "name": "vector",
+          "widget_type": "json",
+          "label": "Vector",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "widget_type": "json",
+          "label": "Properties",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "vector_search",
+      "title": "Vector Search",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "vector",
+          "widget_type": "json",
+          "label": "Vector",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "widget_type": "integer",
+          "label": "Limit",
+          "required": false
+        },
+        {
+          "name": "min_score",
+          "widget_type": "number",
+          "label": "Min Score",
+          "required": false
+        },
+        {
+          "name": "include_embeddings",
+          "widget_type": "boolean",
+          "label": "Include Embeddings",
+          "required": false
+        }
+      ]
+    },
+    {
+      "operation_id": "delete_vector_node",
+      "title": "Delete Vector Node",
+      "fields": [
+        {
+          "name": "index_name",
+          "widget_type": "textarea",
+          "label": "Index Name",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "widget_type": "textarea",
+          "label": "Node Id",
+          "required": true
+        },
+        {
+          "name": "detach",
+          "widget_type": "boolean",
+          "label": "Detach",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

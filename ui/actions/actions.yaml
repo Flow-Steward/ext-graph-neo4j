@@ -1,0 +1,941 @@
+{
+  "actions": [
+    {
+      "action_id": "ensure_node_constraint",
+      "workflow_visible": true,
+      "title": "Ensure Node Constraint",
+      "description": "Ensure uniqueness of the configured stable node ID within a label. Requires schema privileges.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "upsert_node",
+      "workflow_visible": true,
+      "title": "Upsert Node",
+      "description": "Merge a node by stable ID and patch its flat properties. Null values remove properties.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "type": "object",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "get_node",
+      "workflow_visible": true,
+      "title": "Get Node",
+      "description": "Read a node by label and stable ID.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "find_nodes",
+      "workflow_visible": true,
+      "title": "Find Nodes",
+      "description": "Read up to 100 nodes with an optional property equality filter.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "filter",
+          "type": "object",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "delete_node",
+      "workflow_visible": true,
+      "title": "Delete Node",
+      "description": "Delete a node. Detach must be explicitly enabled to remove its incident relationships.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "detach",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "upsert_relationship",
+      "workflow_visible": true,
+      "title": "Upsert Relationship",
+      "description": "Merge a directed relationship by endpoints, type and stable relationship ID, then patch properties.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from_label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "to_label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "to_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "relationship_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "type": "object",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "find_relationships",
+      "workflow_visible": true,
+      "title": "Find Relationships",
+      "description": "Read bounded incident relationships and neighbors in the selected direction.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "direction",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "delete_relationship",
+      "workflow_visible": true,
+      "title": "Delete Relationship",
+      "description": "Delete a directed relationship identified by endpoints, type and relationship ID.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from_label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "to_label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "to_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "relationship_type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "relationship_id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "ensure_vector_index",
+      "workflow_visible": true,
+      "title": "Ensure Vector Index",
+      "description": "Create or verify a node vector index with exact label, property, dimensions and similarity.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "embedding_property",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "dimensions",
+          "type": "integer",
+          "required": true
+        },
+        {
+          "name": "similarity",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "get_vector_index",
+      "workflow_visible": true,
+      "title": "Get Vector Index",
+      "description": "Read a node vector index schema and ONLINE/POPULATING state.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "list_vector_indexes",
+      "workflow_visible": true,
+      "title": "List Vector Indexes",
+      "description": "List up to 100 vector indexes.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "await_vector_index",
+      "workflow_visible": true,
+      "title": "Await Vector Index",
+      "description": "Wait up to the bounded timeout for an existing node vector index to become ONLINE.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "wait_seconds",
+          "type": "integer",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "drop_vector_index",
+      "workflow_visible": true,
+      "title": "Drop Vector Index",
+      "description": "Drop a vector index only with confirm=true. Documents remain in the graph.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "confirm",
+          "type": "boolean",
+          "required": true
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "upsert_vector_node",
+      "workflow_visible": true,
+      "title": "Upsert Vector Node",
+      "description": "Merge a node with an embedding and metadata, validating dimensions against the selected index.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "vector",
+          "type": "array",
+          "required": true
+        },
+        {
+          "name": "properties",
+          "type": "object",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "vector_search",
+      "workflow_visible": true,
+      "title": "Vector Search",
+      "description": "Search native node vectors and return scores plus node metadata for downstream RAG. Embeddings are omitted by default.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "vector",
+          "type": "array",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false
+        },
+        {
+          "name": "min_score",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "include_embeddings",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    },
+    {
+      "action_id": "delete_vector_node",
+      "workflow_visible": true,
+      "title": "Delete Vector Node",
+      "description": "Delete an indexed node by stable ID; the vector index updates with the graph.",
+      "required_scopes": [
+        "extension:invoke"
+      ],
+      "handler": {
+        "mode": "extension"
+      },
+      "parameters": [
+        {
+          "name": "connection_ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "index_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "node_id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "detach",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "result_fields": [
+        "result.records",
+        "result.count",
+        "result.applied"
+      ],
+      "error_codes": [
+        "invalid_payload",
+        "invalid_connection",
+        "effect_claim_required",
+        "test_mode_suppressed",
+        "provider_unavailable",
+        "native_unavailable",
+        "invalid_provider_response",
+        "response_too_large",
+        "network_blocked",
+        "timeout",
+        "authentication_failed",
+        "index_not_found",
+        "index_configuration_mismatch",
+        "index_not_online",
+        "invalid_vector"
+      ],
+      "mutates_platform": false
+    }
+  ]
+}

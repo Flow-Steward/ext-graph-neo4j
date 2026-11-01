@@ -1,0 +1,10 @@
+{
+  "page_id": "connection",
+  "title": "Connections",
+  "description": "Choose the direct Bolt database endpoint.",
+  "components": [
+    {
+      "ref": "../components/neo4j_connection_form.yaml"
+    }
+  ]
+}

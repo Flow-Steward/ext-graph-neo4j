@@ -1,0 +1,6 @@
+{
+  "component_id": "neo4j_about",
+  "type": "markdown",
+  "title": "Neo4j",
+  "content": "Read and write graph nodes and relationships, manage node vector indexes, and retrieve nearest neighbors with source metadata. No triggers. Embeddings and LLM responses are supplied by other workflow steps."
+}
