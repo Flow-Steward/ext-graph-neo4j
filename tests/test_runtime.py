@@ -483,7 +483,12 @@ def test_project_scope_is_required_before_provider_io(monkeypatch, field, value)
     payload = envelope("get_node")
     payload["runtime_context"][field] = value
     calls = []
-    monkeypatch.setattr(main.toolbox, "invoke", lambda *a, **k: calls.append(a) or [[]])
+
+    def invoke(*args, **kwargs):
+        calls.append(args)
+        return [[]]
+
+    monkeypatch.setattr(main.toolbox, "invoke", invoke)
     result = main.handle(payload)
     assert not result["ok"]
     assert result["definitely_no_external_effect"]
