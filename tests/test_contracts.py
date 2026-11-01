@@ -37,6 +37,7 @@ def test_identity_and_operation_parity():
         == load("extension-descriptor.yaml")["extension_id"]
         == "flowsteward.neo4j"
     )
+    assert m["version"] == load("extension-descriptor.yaml")["release_version"] == "1.0.1"
     assert m["features"] == ["tool", "action"]
     ops = load("contracts/operation_manifest.yaml")["operations"]
     actions = load("ui/actions/actions.yaml")["actions"]
