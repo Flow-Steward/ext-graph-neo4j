@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "extension_id": "flowsteward.neo4j",
   "kind": "tool_provider",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "release_stage": "active",
   "display_name": "Neo4j",
   "description": "Neo4j graph reads and writes, vector index lifecycle and nearest-neighbor search through a minimal Google MCP Toolbox build.",
