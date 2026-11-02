@@ -16,5 +16,5 @@ bounded Bolt messages. Driver source: https://github.com/neo4j/neo4j-go-driver
 Copyright Neo4j Sweden AB; Apache-2.0. Both source patches, build pins and
 native provenance accompany the extension.
 
-The original connected-node icon is by Flow Steward contributors. Neo4j is a
+The icon is official Neo4j brand artwork; see BRAND-ASSETS.md for its source. Neo4j is a
 trademark of Neo4j, Inc. This project is independent and unaffiliated.
