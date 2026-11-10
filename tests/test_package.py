@@ -74,6 +74,12 @@ def source(tmp_path):
     patch = Path("scripts/patches/0000-security-baseline.patch")
     (root / patch).parent.mkdir(parents=True)
     shutil.copyfile(ROOT / patch, root / patch)
+    overlay = Path("scripts/patches/0000-neo4j-latest-driver.patch")
+    shutil.copyfile(ROOT / overlay, root / overlay)
+    driver_patch = Path("scripts/patches/0002-neo4j-driver-socket-dialer.patch")
+    shutil.copyfile(ROOT / driver_patch, root / driver_patch)
+    approved = Path("scripts/patches/0000-approved-prebuilt-profiles.patch")
+    shutil.copyfile(ROOT / approved, root / approved)
     for name in ("native_build_info.py", "package_extension.py", "security-floor.json"):
         shutil.copyfile(ROOT / "scripts" / name, root / "scripts" / name)
     return root
@@ -103,7 +109,7 @@ def test_archive_is_reproducible_and_contains_one_declared_target(source, tmp_pa
     (source / "outside-link").symlink_to(tmp_path / "secret")
     first = module.package_extension(source, target, tmp_path / "one")
     second = module.package_extension(source, target, tmp_path / "two")
-    assert first.name == f"flowsteward.neo4j-1.0.3-{target}.zip"
+    assert first.name == f"flowsteward.neo4j-1.0.4-{target}.zip"
     assert first.read_bytes() == second.read_bytes()
     prefix = "flowsteward_neo4j/"
     with zipfile.ZipFile(first) as archive:

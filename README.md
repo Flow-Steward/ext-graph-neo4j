@@ -89,7 +89,7 @@ python3 scripts/package_extension.py --runtime-target linux-amd64
 python3 scripts/package_extension.py --runtime-target linux-arm64
 ```
 
-The build pins Toolbox v1.3.0 commit `b0010060a939455d91e4f8ba62dc3e72b1892469`, Go image by digest, and Neo4j Go driver v6.0.0 by its Go module sum. Source and driver patch hashes, exact imported packages, executable SHA-256 and sizes are in `toolbox-provenance.json `. Native binaries are omitted from Git history. Packaging is deterministic and enforces the installer's 50MiB compressed/150MiB unpacked limits.
+The build pins Toolbox v1.16.0 commit `06ea49d9a487a72c22419b5a8d5c22c11f0d7485`, Go image by digest, and Neo4j Go driver v6.4.0 by its Go module sum. Source and driver patch hashes, exact imported packages, executable SHA-256 and sizes are in `toolbox-provenance.json `. Native binaries are omitted from Git history. Packaging is deterministic and enforces the installer's 50MiB compressed/150MiB unpacked limits.
 
 From a Flow Steward checkout, run the container gate:
 

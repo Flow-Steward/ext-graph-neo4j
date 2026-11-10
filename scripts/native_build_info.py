@@ -68,7 +68,7 @@ def record(root: Path) -> None:
 def check_security_floor(version: str, modules: dict[str, str], raw: str) -> None:
     """Accept only the reviewed compiler and effective selected dependency versions."""
     import re
-    if version != "go1.26.10":
+    if version != "go1.27.3":
         raise ValueError(f"native compiler is outside the reviewed security baseline: {version}")
     floors = json.loads((Path(__file__).resolve().parent / "security-floor.json").read_text())["modules"]
     previous = None
@@ -77,7 +77,8 @@ def check_security_floor(version: str, modules: dict[str, str], raw: str) -> Non
         if fields[0] == "dep":
             previous = fields[1]
         elif fields[0] == "=>" and previous in floors:
-            raise ValueError(f"security-sensitive module has an unmodeled replacement: {previous}")
+            if not (previous == "github.com/neo4j/neo4j-go-driver/v6" and modules.get(previous) == "v6.4.0" and fields[1:3] == ["/driver", "(devel)"]):
+                raise ValueError(f"security-sensitive module has an unmodeled replacement: {previous}")
     def release(value):
         match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?", value)
         if not match:
@@ -96,12 +97,27 @@ def verify_security(root: Path, target: str, provenance: dict) -> None:
     expected = {"path": f"bin/{target}/toolbox", "go_version": version, "modules": modules, "build_info": raw}
     if any(entry.get(key) != value for key, value in expected.items()):
         raise ValueError("native build information does not match provenance")
-    if provenance.get("commit") != "b0010060a939455d91e4f8ba62dc3e72b1892469":
+    if provenance.get("commit") != "06ea49d9a487a72c22419b5a8d5c22c11f0d7485":
         raise ValueError("native source commit does not match the reviewed baseline")
-    if provenance.get("go_image") != "golang:1.26.10-bookworm@sha256:5de7c99eb78ca5e515a4c340235d0955ec5964a5071c492c15503d7c267da473":
+    if provenance.get("go_image") != "golang:1.27.3-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0":
         raise ValueError("native build image does not match the reviewed baseline")
+    if (provenance.get("source"), provenance.get("upstream_tag"), provenance.get("upstream_commit")) != ("https://github.com/googleapis/mcp-toolbox", "v1.16.0", "06ea49d9a487a72c22419b5a8d5c22c11f0d7485"):
+        raise ValueError("native upstream source identity does not match the reviewed baseline")
+    overlay = provenance.get("module_overlay", {})
+    overlay_path = root / "scripts/patches/0000-neo4j-latest-driver.patch"
+    if overlay.get("sha256") != "c25f639ecdc3bf163dadba7afb33351c7e78f471cde95fff14c74597578af9d0" or not overlay_path.is_file() or overlay_path.is_symlink() or hashlib.sha256(overlay_path.read_bytes()).hexdigest() != overlay["sha256"]:
+        raise ValueError("native Neo4j latest module overlay is missing or changed")
+    driver = provenance.get("driver", {})
+    driver_patch = root / "scripts/patches/0002-neo4j-driver-socket-dialer.patch"
+    if driver.get("version") != "v6.4.0" or driver.get("module_sum") != "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=" or driver.get("upstream_commit") != "dd3f3684b7f331acc53ae0592a03c4e24a5c5059" or driver.get("replacement") != "/driver" or not driver_patch.is_file() or driver_patch.is_symlink() or (hashlib.sha256(driver_patch.read_bytes()).hexdigest() != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5" or driver.get("patch_sha256") != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5"):
+        raise ValueError("native reviewed Neo4j driver identity does not match provenance")
+    profile = provenance.get("approved_profiles", {})
+    profile_path = root / "scripts/patches/0000-approved-prebuilt-profiles.patch"
+    profile_digest = "df264c60006ad1a01812b427fb6a9593115ddd86227fc9522b8bae6731616aca"
+    if profile != {"patch": "scripts/patches/0000-approved-prebuilt-profiles.patch", "sha256": profile_digest} or not profile_path.is_file() or profile_path.is_symlink() or hashlib.sha256(profile_path.read_bytes()).hexdigest() != profile_digest:
+        raise ValueError("native approved profile baseline is missing or changed")
     baseline = provenance.get("security_baseline", {})
-    digest = "a6623600324d2bdec1b30102e749678d4fea326bbb9d9f4f586a7ba472d395e2"
+    digest = "af406af0a861bea0b8e3d83e55fbdef9173cc01762788c6d06cc9b47eaa558e1"
     if baseline != {"patch": "scripts/patches/0000-security-baseline.patch", "sha256": digest}:
         raise ValueError("native dependency baseline does not match provenance")
     path = root / baseline["patch"]

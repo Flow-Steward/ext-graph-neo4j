@@ -12,18 +12,18 @@ ROOT = Path(__file__).resolve().parents[1]
 class NativeBuildTests(unittest.TestCase):
     def test_pinned_source_and_patch(self):
         provenance = json.loads((ROOT / "toolbox-provenance.json").read_text())
-        self.assertEqual(provenance["tag"], "v1.3.0")
-        self.assertEqual(provenance["commit"], "b0010060a939455d91e4f8ba62dc3e72b1892469")
+        self.assertEqual(provenance["tag"], "v1.16.0")
+        self.assertEqual(provenance["commit"], "06ea49d9a487a72c22419b5a8d5c22c11f0d7485")
         self.assertIn("@sha256:", provenance["go_image"])
         for entry in (provenance, provenance["driver"]):
             self.assertEqual(
                 hashlib.sha256((ROOT / entry["patch"]).read_bytes()).hexdigest(),
                 entry["patch_sha256"],
             )
-        self.assertEqual(provenance["driver"]["version"], "v6.0.0")
+        self.assertEqual(provenance["driver"]["version"], "v6.4.0")
         self.assertEqual(
             provenance["driver"]["module_sum"],
-            "h1:xVAi6YLOfzXUx+1Lc/F2dUhpbN76BfKleZbAlnDFRiA=",
+            "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=",
         )
         self.assertEqual(
             set(provenance["packages"]),
@@ -44,14 +44,14 @@ class NativeBuildTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(binary).hexdigest(), details["sha256"])
 
     def test_minimal_import_build(self):
-        script = (ROOT / "scripts" / "build_toolbox.sh").read_text()
+        script = ((ROOT / "scripts/build_toolbox.sh").read_text() + (ROOT / "scripts/build_inside.sh").read_text())
         self.assertIn("= 2", script)
-        self.assertIn("sources\\/neo4j", script)
+        self.assertIn("sources/neo4j", script)
         self.assertIn("neo4jcypher", script)
         self.assertIn("CGO_ENABLED=0", script)
         self.assertIn("go test -p 1 ./internal/sources/neo4j", script)
         self.assertIn("go test -p 1 ./neo4j/internal/connector", script)
-        self.assertIn('-run "TestFlowSteward|TestDechunkerWithTimeout"', script)
+        self.assertIn("TestFlowSteward|TestDechunkerWithTimeout", script)
 
 
 if __name__ == "__main__":
