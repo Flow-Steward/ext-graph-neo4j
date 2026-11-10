@@ -6,8 +6,8 @@ An independent Neo4j connector for graph reads and writes and native node vector
 
 Use the ZIP matching the **Linux extension host** architecture:
 
-- `flowsteward.neo4j-1.0.2-linux-amd64.zip `
-- `flowsteward.neo4j-1.0.2-linux-arm64.zip `
+- `flowsteward.neo4j-1.0.3-linux-amd64.zip `
+- `flowsteward.neo4j-1.0.3-linux-arm64.zip `
 
 Verify the release's `SHA256SUMS ` before importing the archive. Each ZIP contains one executable for its own target, host-v2 contracts, UI forms, source patches and build provenance. Platform 1.4.0+ and extension SDK 0.4.0 are required.
 

@@ -4,14 +4,14 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TOOLBOX_TAG=v1.3.0
 TOOLBOX_COMMIT=b0010060a939455d91e4f8ba62dc3e72b1892469
-GO_IMAGE=golang:1.26.2-bookworm@sha256:47ce5636e9936b2c5cbf708925578ef386b4f8872aec74a67bd13a627d242b19
+GO_IMAGE=golang:1.26.10-bookworm@sha256:5de7c99eb78ca5e515a4c340235d0955ec5964a5071c492c15503d7c267da473
 PATCH=scripts/patches/0001-flowsteward-neo4j-safety.patch
 
-docker run --rm --label flow-steward.audit=neo4j-20261101 \
+docker run --rm --cpus 1 --memory 2g --label flow-steward.audit=neo4j-20261101 \
   -e TOOLBOX_TAG="$TOOLBOX_TAG" -e TOOLBOX_COMMIT="$TOOLBOX_COMMIT" \
   -e GO_IMAGE="$GO_IMAGE" -e PATCH="$PATCH" -e PATCH_CONTENT="$(cat "$ROOT/$PATCH")" \
   -e DRIVER_PATCH_CONTENT="$(cat "$ROOT/scripts/patches/0002-neo4j-driver-socket-dialer.patch")" \
-  -v flow-steward-neo4j-go-cache:/go/pkg/mod -v flow-steward-neo4j-build-cache:/root/.cache/go-build \
+  -v flow-steward-db-batch-go-cache:/go/pkg/mod -v flow-steward-db-batch-build-cache:/root/.cache/go-build \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   -v "$ROOT:/out" "$GO_IMAGE" sh -c '
     set -eu
@@ -19,6 +19,9 @@ docker run --rm --label flow-steward.audit=neo4j-20261101 \
       https://github.com/googleapis/mcp-toolbox.git /src
     test "$(git -C /src rev-parse HEAD)" = "$TOOLBOX_COMMIT"
     cd /src
+    git apply /out/scripts/patches/0000-security-baseline.patch
+    printf "%s\n" "7f367f79f68cc28cfcb8c7d36c5533ef79f5016aaeba4443a795a46132105fb5  go.mod" "ca2ace78373b79e7c2b048e69ef22abfb93f1b3a537b7f035ad7c1a0c28542e9  go.sum" | sha256sum -c -
+    export GOFLAGS=-mod=readonly GOTOOLCHAIN=local
     printf "%s\n" "$PATCH_CONTENT" > /tmp/neo4j.patch
     git apply /tmp/neo4j.patch
     go mod download github.com/neo4j/neo4j-go-driver/v6
@@ -32,6 +35,7 @@ docker run --rm --label flow-steward.audit=neo4j-20261101 \
     go test -p 1 ./neo4j/internal/bolt -run "TestFlowSteward|TestDechunkerWithTimeout"
     cd /src
     go mod edit -replace github.com/neo4j/neo4j-go-driver/v6=/driver
+    sha256sum go.mod go.sum > /tmp/fs-security-module-lock
     awk '\''/internal\/(sources|tools)\// {
       if ($2 ~ /github.com\/googleapis\/mcp-toolbox\/internal\/(sources\/neo4j|tools\/neo4j\/neo4jcypher)\"$/) print;
       next
@@ -50,6 +54,7 @@ docker run --rm --label flow-steward.audit=neo4j-20261101 \
       chmod 0755 "/tmp/neo4j-bin/$target/toolbox"
       echo "[PASS] $target: $(stat -c %s "/tmp/neo4j-bin/$target/toolbox") bytes"
     done
+    sha256sum -c /tmp/fs-security-module-lock
     {
       printf "{\n  \"tag\": \"%s\",\n  \"commit\": \"%s\",\n  \"go_image\": \"%s\",\n" "$TOOLBOX_TAG" "$TOOLBOX_COMMIT" "$GO_IMAGE"
       printf "  \"source_date_epoch\": 1779400183,\n  \"patch\": \"%s\",\n  \"patch_sha256\": \"%s\",\n" "$PATCH" "$(sha256sum /tmp/neo4j.patch | cut -d " " -f 1)"
@@ -78,3 +83,5 @@ docker run --rm --label flow-steward.audit=neo4j-20261101 \
     chown "$HOST_UID:$HOST_GID" "$pending"
     mv -f "$pending" /out/toolbox-provenance.json
   '
+
+python3 "$ROOT/scripts/native_build_info.py"
