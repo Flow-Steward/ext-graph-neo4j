@@ -1,0 +1,19 @@
+{
+  "module": "github.com/neo4j/neo4j-go-driver/v6",
+  "version": "v6.4.0",
+  "module_sum": "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=",
+  "source": "https://github.com/neo4j/neo4j-go-driver",
+  "upstream_commit": "dd3f3684b7f331acc53ae0592a03c4e24a5c5059",
+  "replacement": "/driver",
+  "patch": "scripts/patches/0002-neo4j-driver-socket-dialer.patch",
+  "patch_sha256": "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5",
+  "upstream_module": {
+    "ecosystem": "Go",
+    "name": "github.com/neo4j/neo4j-go-driver/v6",
+    "version": "v6.4.0"
+  },
+  "upstream_tag": "v6.4.0",
+  "module_version": "v6.4.0",
+  "upstream_module_sum": "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=",
+  "toolbox_source_commit": "06ea49d9a487a72c22419b5a8d5c22c11f0d7485"
+}
