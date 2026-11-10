@@ -3,13 +3,13 @@ set -eu
 cp -a /upstream /src
 cd /src
 git apply /out/scripts/patches/0000-security-baseline.patch
-printf '%s\n' '1c59a76307271df0a6992d9db406f9c49ba670dfb898e029bbc86136adcc9294  go.mod' 'd0e98fac8a9d4677bc239a668b472dd2f459ab65f3d0fec7ceb2a50bb6138841  go.sum' | sha256sum -c -
+printf '%s\n' 'f547c08375f72e483c269c214f1a5190a8d81237687455549f829aac5a8d7d51  go.mod' '5c713561f5dce0e9c5c38977c925f54c94a4bec1095642cb6d04baaa612beacd  go.sum' | sha256sum -c -
 export GOFLAGS=-mod=readonly GOTOOLCHAIN=local GOMAXPROCS=2
 test "$(go version | cut -d ' ' -f 3)" = go1.27.3
 git apply /out/scripts/patches/0000-approved-prebuilt-profiles.patch
 git apply /out/scripts/patches/0001-flowsteward-neo4j-safety.patch
 git apply /out/scripts/patches/0000-neo4j-latest-driver.patch
-printf '%s\n' '1fc028bb3b1343fe4c94ae3c78b5bfaf9d666068c3bf2b9c6f6f8f6aa30adfe0  go.mod' 'd96e791bd1d55fcef991a82e3e8f936022f4a53f9687fd49b8fd5b5849300872  go.sum' | sha256sum -c -
+printf '%s\n' '2323795f12a07bdb1edf46b2e92083026d282547f4d5bb49aee55e5dbebf0a1d  go.mod' '119cf57e2df0d3d7aa5ba6b8bc7ed27db84d6aa6a502b10bf48553de447c1d4d  go.sum' | sha256sum -c -
 go mod download github.com/neo4j/neo4j-go-driver/v6
 cp -a /go/pkg/mod/github.com/neo4j/neo4j-go-driver/v6@v6.4.0 /driver
 chmod -R u+w /driver

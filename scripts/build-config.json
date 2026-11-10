@@ -23,7 +23,7 @@
   "module_overlay": {
     "patch": "scripts/patches/0000-neo4j-latest-driver.patch",
     "sha256": "c25f639ecdc3bf163dadba7afb33351c7e78f471cde95fff14c74597578af9d0",
-    "go.mod": "1fc028bb3b1343fe4c94ae3c78b5bfaf9d666068c3bf2b9c6f6f8f6aa30adfe0",
-    "go.sum": "d96e791bd1d55fcef991a82e3e8f936022f4a53f9687fd49b8fd5b5849300872"
+    "go.mod": "2323795f12a07bdb1edf46b2e92083026d282547f4d5bb49aee55e5dbebf0a1d",
+    "go.sum": "119cf57e2df0d3d7aa5ba6b8bc7ed27db84d6aa6a502b10bf48553de447c1d4d"
   }
 }
