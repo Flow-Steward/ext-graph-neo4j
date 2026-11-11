@@ -1,13 +1,21 @@
 # Neo4j for Flow Steward
 
+Use Neo4j in Flow Steward for graph-backed records, relationship lookups and vector retrieval. Actions upsert, read, find and delete nodes using a label and stable string ID; create or patch directed relationships between existing nodes; and retrieve incident edges and neighboring nodes. Create a uniqueness constraint for each node label before concurrent upserts.
+
+Vector actions create or verify a node vector index, inspect and list indexes, wait for an index to become ready, or drop it while preserving graph nodes. Write embeddings and metadata to indexed nodes, search for nearest neighbors with scores, and remove indexed nodes when source data changes. Indexes support cosine or Euclidean similarity and vectors of 1–4096 components. Combine retrieved source properties and graph relationships with your own answer-generation workflow.
+
+Configure a direct Bolt endpoint, database and username/password. Supply embeddings externally; chunking, model calls and citation generation belong to your workflow. Reads return at most 100 records, and properties are flat values or homogeneous primitive arrays. Cluster routing and arbitrary Cypher are outside the operation set. Node deletion needs explicit detach to remove connected relationships, and schema operations require appropriate Neo4j privileges.
+
+## Runtime and operation requirements
+
 An independent Neo4j connector for graph reads and writes and native node vector search. It includes one minimal Google MCP Toolbox executable per installer archive. The connector adds workflow actions; it does not need changes to Core or database triggers.
 
 ## Install
 
 Use the ZIP matching the **Linux extension host** architecture:
 
-- `flowsteward.neo4j-1.0.3-linux-amd64.zip `
-- `flowsteward.neo4j-1.0.3-linux-arm64.zip `
+- `flowsteward.neo4j-1.0.6-linux-amd64.zip `
+- `flowsteward.neo4j-1.0.6-linux-arm64.zip `
 
 Verify the release's `SHA256SUMS ` before importing the archive. Each ZIP contains one executable for its own target, host-v2 contracts, UI forms, source patches and build provenance. Platform 1.4.0+ and extension SDK 0.4.0 are required.
 

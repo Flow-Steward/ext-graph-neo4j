@@ -2,10 +2,10 @@
   "manifest_version": 2,
   "extension_id": "flowsteward.neo4j",
   "kind": "tool_provider",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "release_stage": "active",
   "display_name": "Neo4j",
-  "description": "Neo4j graph reads and writes, vector index lifecycle and nearest-neighbor search through a minimal Google MCP Toolbox build.",
+  "description": "Use Neo4j in Flow Steward for graph-backed records, relationship lookups and vector retrieval. Actions upsert, read, find and delete nodes using a label and stable string ID; create or patch directed relationships between existing nodes; and retrieve incident edges and neighboring nodes. Create a uniqueness constraint for each node label before concurrent upserts.\n\nVector actions create or verify a node vector index, inspect and list indexes, wait for an index to become ready, or drop it while preserving graph nodes. Write embeddings and metadata to indexed nodes, search for nearest neighbors with scores, and remove indexed nodes when source data changes. Indexes support cosine or Euclidean similarity and vectors of 1–4096 components. Combine retrieved source properties and graph relationships with your own answer-generation workflow.\n\nConfigure a direct Bolt endpoint, database and username/password. Supply embeddings externally; chunking, model calls and citation generation belong to your workflow. Reads return at most 100 records, and properties are flat values or homogeneous primitive arrays. Cluster routing and arbitrary Cypher are outside the operation set. Node deletion needs explicit detach to remove connected relationships, and schema operations require appropriate Neo4j privileges.",
   "lifecycle": {
     "data_schema_version": 1,
     "data_migrations": []
@@ -21,7 +21,8 @@
       "vector",
       "toolbox"
     ],
-    "summary": "Graph CRUD and native vector search."
+    "summary": "Create and query Neo4j graphs, manage node vector indexes and retrieve similar nodes with metadata.",
+    "setup_summary": "Create a Neo4j project connection with a direct Bolt host, database, stable ID property and username/password; public endpoints require verified TLS. Create per-label uniqueness constraints before concurrent upserts, and configure a matching vector index plus externally generated embeddings for similarity search."
   },
   "features": [
     "tool",
