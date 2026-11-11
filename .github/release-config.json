@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "extension_id": "flowsteward.neo4j",
+  "runtime_targets": [
+    "linux-amd64",
+    "linux-arm64"
+  ],
+  "package_script": "scripts/package_extension.py",
+  "test_requirements": [
+    "requirements-dev.txt"
+  ],
+  "test_paths": [
+    "tests/test_contracts.py",
+    "tests/test_license.py",
+    "tests/test_native_build.py",
+    "tests/test_native_registrations.py",
+    "tests/test_package.py",
+    "tests/test_runtime.py",
+    "tests/test_security_floor.py",
+    "tests/test_transport.py"
+  ],
+  "additional_assets": [],
+  "payload_sources": [
+    {
+      "target": "linux-amd64",
+      "url": "https://github.com/Flow-Steward/ext-graph-neo4j/releases/download/v1.0.5/flowsteward.neo4j-1.0.5-linux-amd64.zip",
+      "bytes": 11135870,
+      "sha256": "701b3f04a15fbd130b5d4a16448579d9beb5796879052875b248be765dc06665",
+      "restore_paths": [
+        "bin/linux-amd64/toolbox"
+      ]
+    },
+    {
+      "target": "linux-arm64",
+      "url": "https://github.com/Flow-Steward/ext-graph-neo4j/releases/download/v1.0.5/flowsteward.neo4j-1.0.5-linux-arm64.zip",
+      "bytes": 10054615,
+      "sha256": "444dbdaefaa5ea7a0a49953e8dd54ac8a2ec83d5668d6a65dcc7703fb29a73f2",
+      "restore_paths": [
+        "bin/linux-arm64/toolbox"
+      ]
+    }
+  ]
+}

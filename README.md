@@ -14,8 +14,8 @@ An independent Neo4j connector for graph reads and writes and native node vector
 
 Use the ZIP matching the **Linux extension host** architecture:
 
-- `flowsteward.neo4j-1.0.6-linux-amd64.zip `
-- `flowsteward.neo4j-1.0.6-linux-arm64.zip `
+- `flowsteward.neo4j-1.0.7-linux-amd64.zip `
+- `flowsteward.neo4j-1.0.7-linux-arm64.zip `
 
 Verify the release's `SHA256SUMS ` before importing the archive. Each ZIP contains one executable for its own target, host-v2 contracts, UI forms, source patches and build provenance. Platform 1.4.0+ and extension SDK 0.4.0 are required.
 
@@ -108,3 +108,30 @@ From a Flow Steward checkout, run the container gate:
 Tests cover contracts, validation, shared deadlines, process/response bounds, effects, package boundaries and native provenance. Live tests opt in through ignored `tests/live-neo4j.local.json ` containing `host `, `port `, `database `, `id_property `, `username `, `password `, `tls `; use a disposable database. Without a fixture, the live test is explicitly skipped. Go verification covers patched source/tool/classifier suites, driver connector tests and Bolt bounds/timeouts. The upstream 16MiB Bolt fixture intentionally exceeds this distribution's 2MiB cap; an unrelated upstream local-time test is sensitive to the daylight-saving transition date and is not part of the focused patched-driver acceptance.
 
 Apache-2.0. See `LICENSE ` and `NOTICE `. This project is unaffiliated with Neo4j, Inc.
+
+## Automated CI and releases
+
+Pushes to `main` and pull requests run the shared extension build workflow. The checked-in `.github/release-config.json` selects both Linux targets, the repository's package script and test inputs. Missing native payloads and published-only inventory are restored from checksum-pinned release archives; tracked source files are preserved. The source packager retains its provenance checks.
+
+After the versioned release commit is on `main`, publish by pushing its version tag:
+
+```sh
+git tag v1.0.7
+git push origin v1.0.7
+```
+
+The release workflow runs the shared checks, builds the target archives and publishes the GitHub release and checksums. Do not move an existing tag. To rerun a release for an existing tag, dispatch the same workflow:
+
+```sh
+gh workflow run release.yml --repo Flow-Steward/ext-graph-neo4j --ref main -f tag=v1.0.7
+```
+
+The manifest, descriptor (when present), package version and tag must identify the same release. Release publication uses the workflow token; no additional repository secret is required by these callers.
+
+### Standalone CI coverage
+
+The release recipe lists the standalone test files and individual test nodes explicitly, including package, source and provenance contracts. The shared runner clears repository pytest addopts so packaged contract checks are not silently deselected. This scope does not claim live provider or database verification.
+
+The following integration coverage requires a separate environment and is not part of standalone CI:
+
+- `tests/test_live.py`: Opt-in live provider/server test requires external credentials or a disposable service fixture.

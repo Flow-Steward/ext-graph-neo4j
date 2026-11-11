@@ -291,7 +291,7 @@ def invoke(config, secrets, command, arguments, *, timeout_seconds):
                             "capabilities": {},
                             "clientInfo": {
                                 "name": "flowsteward.neo4j",
-                                "version": "1.0.0",
+                                "version": "1.0.7",
                             },
                         },
                     },
