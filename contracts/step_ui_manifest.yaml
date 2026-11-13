@@ -2,415 +2,521 @@
   "forms": [
     {
       "operation_id": "ensure_node_constraint",
-      "title": "Ensure Node Constraint",
+      "title": "Graph: Create or check a unique node ID",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         }
       ]
     },
     {
       "operation_id": "upsert_node",
-      "title": "Upsert Node",
+      "title": "Graph: Create or update a node",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         },
         {
           "name": "properties",
           "widget_type": "json",
-          "label": "Properties",
-          "required": false
+          "label": "Node or relationship properties (JSON)",
+          "required": false,
+          "help_text": "Flat object of scalar values or homogeneous scalar arrays. Nested objects are rejected; null removes a property. Do not include the configured stable ID property.",
+          "placeholder": "{\"title\":\"Refund policy\",\"text\":\"Refunds are accepted within 30 days.\"}"
         }
       ]
     },
     {
       "operation_id": "get_node",
-      "title": "Get Node",
+      "title": "Graph: Read a node by stable ID",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         }
       ]
     },
     {
       "operation_id": "find_nodes",
-      "title": "Find Nodes",
+      "title": "Graph: Find nodes by property values",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "filter",
           "widget_type": "json",
-          "label": "Filter",
-          "required": false
+          "label": "Property equality filter (JSON)",
+          "required": false,
+          "help_text": "Optional flat object of property names and values to match by equality. Omit to read nodes with the selected label up to Maximum results.",
+          "placeholder": "{\"category\":\"refunds\"}"
         },
         {
           "name": "limit",
           "widget_type": "integer",
-          "label": "Limit",
-          "required": false
+          "label": "Maximum results",
+          "required": false,
+          "help_text": "Maximum records to return in this call, from 1 to 100. This is not an automatic all-pages read.",
+          "placeholder": "20"
         }
       ]
     },
     {
       "operation_id": "delete_node",
-      "title": "Delete Node",
+      "title": "Graph: Delete a node",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         },
         {
           "name": "detach",
           "widget_type": "boolean",
-          "label": "Detach",
-          "required": false
+          "label": "Also delete attached relationships",
+          "required": false,
+          "help_text": "Default false. Enable to remove incident relationships when deleting the node; otherwise deletion fails if relationships still exist.",
+          "placeholder": "false"
         }
       ]
     },
     {
       "operation_id": "upsert_relationship",
-      "title": "Upsert Relationship",
+      "title": "Graph: Create or update a directed relationship",
       "fields": [
         {
           "name": "from_label",
           "widget_type": "textarea",
-          "label": "From Label",
-          "required": true
+          "label": "Starting node label",
+          "required": true,
+          "help_text": "Label of the existing node where the directed relationship starts.",
+          "placeholder": "Article"
         },
         {
           "name": "from_id",
           "widget_type": "textarea",
-          "label": "From Id",
-          "required": true
+          "label": "Starting node stable ID",
+          "required": true,
+          "help_text": "Stable ID value of the existing starting node, using the connection’s ID property.",
+          "placeholder": "manual_42"
         },
         {
           "name": "to_label",
           "widget_type": "textarea",
-          "label": "To Label",
-          "required": true
+          "label": "Ending node label",
+          "required": true,
+          "help_text": "Label of the existing node where the directed relationship ends.",
+          "placeholder": "Topic"
         },
         {
           "name": "to_id",
           "widget_type": "textarea",
-          "label": "To Id",
-          "required": true
+          "label": "Ending node stable ID",
+          "required": true,
+          "help_text": "Stable ID value of the existing ending node, using the connection’s ID property.",
+          "placeholder": "refunds"
         },
         {
           "name": "relationship_type",
           "widget_type": "textarea",
-          "label": "Relationship Type",
-          "required": true
+          "label": "Relationship type",
+          "required": true,
+          "help_text": "Neo4j relationship type using letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "ABOUT"
         },
         {
           "name": "relationship_id",
           "widget_type": "textarea",
-          "label": "Relationship Id",
-          "required": true
+          "label": "Stable relationship ID",
+          "required": true,
+          "help_text": "String ID used with direction, endpoints and type to identify the relationship. Reuse it to update or delete that exact relationship.",
+          "placeholder": "manual_42_refunds"
         },
         {
           "name": "properties",
           "widget_type": "json",
-          "label": "Properties",
-          "required": false
+          "label": "Node or relationship properties (JSON)",
+          "required": false,
+          "help_text": "Flat object of scalar values or homogeneous scalar arrays. Nested objects are rejected; null removes a property. Do not include the configured stable ID property.",
+          "placeholder": "{\"title\":\"Refund policy\",\"text\":\"Refunds are accepted within 30 days.\"}"
         }
       ]
     },
     {
       "operation_id": "find_relationships",
-      "title": "Find Relationships",
+      "title": "Graph: Read relationships and neighboring nodes",
       "fields": [
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         },
         {
           "name": "relationship_type",
           "widget_type": "textarea",
-          "label": "Relationship Type",
-          "required": false
+          "label": "Relationship type",
+          "required": false,
+          "help_text": "Neo4j relationship type using letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "ABOUT"
         },
         {
           "name": "direction",
           "widget_type": "textarea",
-          "label": "Direction",
-          "required": false
+          "label": "Relationship direction",
+          "required": false,
+          "help_text": "out for relationships leaving the node, in for relationships entering it, or both (default).",
+          "placeholder": "both"
         },
         {
           "name": "limit",
           "widget_type": "integer",
-          "label": "Limit",
-          "required": false
+          "label": "Maximum results",
+          "required": false,
+          "help_text": "Maximum records to return in this call, from 1 to 100. This is not an automatic all-pages read.",
+          "placeholder": "20"
         }
       ]
     },
     {
       "operation_id": "delete_relationship",
-      "title": "Delete Relationship",
+      "title": "Graph: Delete a directed relationship",
       "fields": [
         {
           "name": "from_label",
           "widget_type": "textarea",
-          "label": "From Label",
-          "required": true
+          "label": "Starting node label",
+          "required": true,
+          "help_text": "Label of the existing node where the directed relationship starts.",
+          "placeholder": "Article"
         },
         {
           "name": "from_id",
           "widget_type": "textarea",
-          "label": "From Id",
-          "required": true
+          "label": "Starting node stable ID",
+          "required": true,
+          "help_text": "Stable ID value of the existing starting node, using the connection’s ID property.",
+          "placeholder": "manual_42"
         },
         {
           "name": "to_label",
           "widget_type": "textarea",
-          "label": "To Label",
-          "required": true
+          "label": "Ending node label",
+          "required": true,
+          "help_text": "Label of the existing node where the directed relationship ends.",
+          "placeholder": "Topic"
         },
         {
           "name": "to_id",
           "widget_type": "textarea",
-          "label": "To Id",
-          "required": true
+          "label": "Ending node stable ID",
+          "required": true,
+          "help_text": "Stable ID value of the existing ending node, using the connection’s ID property.",
+          "placeholder": "refunds"
         },
         {
           "name": "relationship_type",
           "widget_type": "textarea",
-          "label": "Relationship Type",
-          "required": true
+          "label": "Relationship type",
+          "required": true,
+          "help_text": "Neo4j relationship type using letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "ABOUT"
         },
         {
           "name": "relationship_id",
           "widget_type": "textarea",
-          "label": "Relationship Id",
-          "required": true
+          "label": "Stable relationship ID",
+          "required": true,
+          "help_text": "String ID used with direction, endpoints and type to identify the relationship. Reuse it to update or delete that exact relationship.",
+          "placeholder": "manual_42_refunds"
         }
       ]
     },
     {
       "operation_id": "ensure_vector_index",
-      "title": "Ensure Vector Index",
+      "title": "Vector: Create or check a node index",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "label",
           "widget_type": "textarea",
-          "label": "Label",
-          "required": true
+          "label": "Node label",
+          "required": true,
+          "help_text": "Existing or intended Neo4j node label, using letters, digits and underscores. Start with a letter or underscore; maximum 64 characters.",
+          "placeholder": "Article"
         },
         {
           "name": "embedding_property",
           "widget_type": "textarea",
-          "label": "Embedding Property",
-          "required": false
+          "label": "Embedding property name",
+          "required": false,
+          "help_text": "Node property containing the numeric embedding array. Defaults to embedding and must differ from the configured stable ID property.",
+          "placeholder": "embedding"
         },
         {
           "name": "dimensions",
           "widget_type": "integer",
-          "label": "Dimensions",
-          "required": true
+          "label": "Embedding dimensions",
+          "required": true,
+          "help_text": "Number of components returned by your embedding model, 1–4096. Existing index dimensions must match; 3 matches the illustrative array examples.",
+          "placeholder": "3"
         },
         {
           "name": "similarity",
           "widget_type": "textarea",
-          "label": "Similarity",
-          "required": false
+          "label": "Similarity metric",
+          "required": false,
+          "help_text": "cosine (default) or euclidean. An existing index must use the selected metric.",
+          "placeholder": "cosine"
         }
       ]
     },
     {
       "operation_id": "get_vector_index",
-      "title": "Get Vector Index",
+      "title": "Vector: Inspect a node index",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         }
       ]
     },
     {
       "operation_id": "list_vector_indexes",
-      "title": "List Vector Indexes",
+      "title": "Vector: List available indexes",
       "fields": [
         {
           "name": "limit",
           "widget_type": "integer",
-          "label": "Limit",
-          "required": false
+          "label": "Maximum results",
+          "required": false,
+          "help_text": "Maximum records to return in this call, from 1 to 100. This is not an automatic all-pages read.",
+          "placeholder": "20"
         }
       ]
     },
     {
       "operation_id": "await_vector_index",
-      "title": "Await Vector Index",
+      "title": "Vector: Wait for a node index to be ready",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "wait_seconds",
           "widget_type": "integer",
-          "label": "Wait Seconds",
-          "required": false
+          "label": "Maximum wait in seconds",
+          "required": false,
+          "help_text": "Wait 1–20 seconds (default 10) for the existing node index to become ONLINE. Does not create an index.",
+          "placeholder": "10"
         }
       ]
     },
     {
       "operation_id": "drop_vector_index",
-      "title": "Drop Vector Index",
+      "title": "Vector: Delete an index and preserve nodes",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "confirm",
           "widget_type": "boolean",
-          "label": "Confirm",
-          "required": true
+          "label": "Confirm index deletion",
+          "required": true,
+          "help_text": "Must be true to delete the selected vector index. Nodes and their stored embedding properties remain in the graph.",
+          "placeholder": "true"
         }
       ]
     },
     {
       "operation_id": "upsert_vector_node",
-      "title": "Upsert Vector Node",
+      "title": "Vector: Save a node and its embedding",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         },
         {
           "name": "vector",
           "widget_type": "json",
-          "label": "Vector",
-          "required": true
+          "label": "Embedding (numeric array)",
+          "required": true,
+          "help_text": "Supply an embedding from an earlier step using the same model and dimensions as the search index. [0.1,0.2,0.3] is illustrative and requires a 3-dimensional index.",
+          "placeholder": "[0.1,0.2,0.3]"
         },
         {
           "name": "properties",
           "widget_type": "json",
-          "label": "Properties",
-          "required": false
+          "label": "Node or relationship properties (JSON)",
+          "required": false,
+          "help_text": "Flat object of scalar values or homogeneous scalar arrays. Nested objects are rejected; null removes a property. Do not include the configured stable ID property.",
+          "placeholder": "{\"title\":\"Refund policy\",\"text\":\"Refunds are accepted within 30 days.\"}"
         }
       ]
     },
     {
       "operation_id": "vector_search",
-      "title": "Vector Search",
+      "title": "Vector: Search similar nodes",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "vector",
           "widget_type": "json",
-          "label": "Vector",
-          "required": true
+          "label": "Embedding (numeric array)",
+          "required": true,
+          "help_text": "Supply an embedding from an earlier step using the same model and dimensions as the search index. [0.1,0.2,0.3] is illustrative and requires a 3-dimensional index.",
+          "placeholder": "[0.1,0.2,0.3]"
         },
         {
           "name": "limit",
           "widget_type": "integer",
-          "label": "Limit",
-          "required": false
+          "label": "Maximum results",
+          "required": false,
+          "help_text": "Maximum records to return in this call, from 1 to 100. This is not an automatic all-pages read.",
+          "placeholder": "20"
         },
         {
           "name": "min_score",
           "widget_type": "number",
-          "label": "Min Score",
-          "required": false
+          "label": "Minimum similarity score",
+          "required": false,
+          "help_text": "Return matches scoring at least this value from 0 to 1 (default 0). Scores depend on index similarity and are not answer-confidence percentages.",
+          "placeholder": "0"
         },
         {
           "name": "include_embeddings",
           "widget_type": "boolean",
-          "label": "Include Embeddings",
-          "required": false
+          "label": "Include embeddings in returned nodes",
+          "required": false,
+          "help_text": "Default false. Enable only if downstream steps need the stored numeric arrays.",
+          "placeholder": "false"
         }
       ]
     },
     {
       "operation_id": "delete_vector_node",
-      "title": "Delete Vector Node",
+      "title": "Vector: Delete an indexed node",
       "fields": [
         {
           "name": "index_name",
           "widget_type": "textarea",
-          "label": "Index Name",
-          "required": true
+          "label": "Node vector index name",
+          "required": true,
+          "help_text": "Name of the node vector index to create or inspect. Use letters, digits and underscores, starting with a letter or underscore; maximum 64 characters.",
+          "placeholder": "article_vectors"
         },
         {
           "name": "node_id",
           "widget_type": "textarea",
-          "label": "Node Id",
-          "required": true
+          "label": "Stable node ID",
+          "required": true,
+          "help_text": "String value stored in the connection’s configured id_property. This is a business ID, not Neo4j’s internal node ID.",
+          "placeholder": "manual_42"
         },
         {
           "name": "detach",
           "widget_type": "boolean",
-          "label": "Detach",
-          "required": false
+          "label": "Also delete attached relationships",
+          "required": false,
+          "help_text": "Default false. Enable to remove incident relationships when deleting the node; otherwise deletion fails if relationships still exist.",
+          "placeholder": "false"
         }
       ]
     }

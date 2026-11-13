@@ -1,5 +1,7 @@
 # Neo4j for Flow Steward
 
+See [Workflow action guide](docs/workflow-actions.md) for action selection, setup requirements and JSON field examples.
+
 Use Neo4j in Flow Steward for graph-backed records, relationship lookups and vector retrieval. Actions upsert, read, find and delete nodes using a label and stable string ID; create or patch directed relationships between existing nodes; and retrieve incident edges and neighboring nodes. Create a uniqueness constraint for each node label before concurrent upserts.
 
 Vector actions create or verify a node vector index, inspect and list indexes, wait for an index to become ready, or drop it while preserving graph nodes. Write embeddings and metadata to indexed nodes, search for nearest neighbors with scores, and remove indexed nodes when source data changes. Indexes support cosine or Euclidean similarity and vectors of 1–4096 components. Combine retrieved source properties and graph relationships with your own answer-generation workflow.
@@ -14,8 +16,8 @@ An independent Neo4j connector for graph reads and writes and native node vector
 
 Use the ZIP matching the **Linux extension host** architecture:
 
-- `flowsteward.neo4j-1.0.7-linux-amd64.zip `
-- `flowsteward.neo4j-1.0.7-linux-arm64.zip `
+- `flowsteward.neo4j-1.0.8-linux-amd64.zip `
+- `flowsteward.neo4j-1.0.8-linux-arm64.zip `
 
 Verify the release's `SHA256SUMS ` before importing the archive. Each ZIP contains one executable for its own target, host-v2 contracts, UI forms, source patches and build provenance. Platform 1.4.0+ and extension SDK 0.4.0 are required.
 
@@ -116,14 +118,14 @@ Pushes to `main` and pull requests run the shared extension build workflow. The 
 After the versioned release commit is on `main`, publish by pushing its version tag:
 
 ```sh
-git tag v1.0.7
-git push origin v1.0.7
+git tag v1.0.8
+git push origin v1.0.8
 ```
 
 The release workflow runs the shared checks, builds the target archives and publishes the GitHub release and checksums. Do not move an existing tag. To rerun a release for an existing tag, dispatch the same workflow:
 
 ```sh
-gh workflow run release.yml --repo Flow-Steward/ext-graph-neo4j --ref main -f tag=v1.0.7
+gh workflow run release.yml --repo Flow-Steward/ext-graph-neo4j --ref main -f tag=v1.0.8
 ```
 
 The manifest, descriptor (when present), package version and tag must identify the same release. Release publication uses the workflow token; no additional repository secret is required by these callers.
