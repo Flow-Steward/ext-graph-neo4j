@@ -16,8 +16,8 @@ An independent Neo4j connector for graph reads and writes and native node vector
 
 Use the ZIP matching the **Linux extension host** architecture:
 
-- `flowsteward.neo4j-1.0.8-linux-amd64.zip `
-- `flowsteward.neo4j-1.0.8-linux-arm64.zip `
+- `flowsteward.neo4j-1.0.9-linux-amd64.zip `
+- `flowsteward.neo4j-1.0.9-linux-arm64.zip `
 
 Verify the release's `SHA256SUMS ` before importing the archive. Each ZIP contains one executable for its own target, host-v2 contracts, UI forms, source patches and build provenance. Platform 1.4.0+ and extension SDK 0.4.0 are required.
 
@@ -99,7 +99,7 @@ python3 scripts/package_extension.py --runtime-target linux-amd64
 python3 scripts/package_extension.py --runtime-target linux-arm64
 ```
 
-The build pins Toolbox v1.16.0 commit `06ea49d9a487a72c22419b5a8d5c22c11f0d7485`, Go image by digest, and Neo4j Go driver v6.4.0 by its Go module sum. Source and driver patch hashes, exact imported packages, executable SHA-256 and sizes are in `toolbox-provenance.json `. Native binaries are omitted from Git history. Packaging is deterministic and enforces the installer's 50MiB compressed/150MiB unpacked limits.
+The build pins Toolbox v1.17.0 commit `45ed205cc8682ed066c82e0b65bcd0e8fc3becce`, Go image by digest, and Neo4j Go driver v6.4.0 by its Go module sum. Source and driver patch hashes, exact imported packages, executable SHA-256 and sizes are in `toolbox-provenance.json `. Native binaries are omitted from Git history. Packaging is deterministic and enforces the installer's 50MiB compressed/150MiB unpacked limits.
 
 From a Flow Steward checkout, run the container gate:
 
@@ -118,14 +118,14 @@ Pushes to `main` and pull requests run the shared extension build workflow. The 
 After the versioned release commit is on `main`, publish by pushing its version tag:
 
 ```sh
-git tag v1.0.8
-git push origin v1.0.8
+git tag v1.0.9
+git push origin v1.0.9
 ```
 
 The release workflow runs the shared checks, builds the target archives and publishes the GitHub release and checksums. Do not move an existing tag. To rerun a release for an existing tag, dispatch the same workflow:
 
 ```sh
-gh workflow run release.yml --repo Flow-Steward/ext-graph-neo4j --ref main -f tag=v1.0.8
+gh workflow run release.yml --repo Flow-Steward/ext-graph-neo4j --ref main -f tag=v1.0.9
 ```
 
 The manifest, descriptor (when present), package version and tag must identify the same release. Release publication uses the workflow token; no additional repository secret is required by these callers.
@@ -137,3 +137,5 @@ The release recipe lists the standalone test files and individual test nodes exp
 The following integration coverage requires a separate environment and is not part of standalone CI:
 
 - `tests/test_live.py`: Opt-in live provider/server test requires external credentials or a disposable service fixture.
+
+Native CI builds Toolbox v1.17.0 from its pinned official source commit. Set `TOOLBOX_SOURCE` or `FS_TOOLBOX_SOURCE_DIR` only to an exact clean checkout. Generated native payloads and provenance are produced during CI and included in each target archive.

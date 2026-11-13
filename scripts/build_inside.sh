@@ -4,13 +4,11 @@ sh /out/scripts/install-go-toolchain.sh /out/scripts/go-toolchain-selected.json
 cp -a /upstream /src
 cd /src
 git apply /out/scripts/patches/0000-security-baseline.patch
-printf '%s\n' 'f547c08375f72e483c269c214f1a5190a8d81237687455549f829aac5a8d7d51  go.mod' '5c713561f5dce0e9c5c38977c925f54c94a4bec1095642cb6d04baaa612beacd  go.sum' | sha256sum -c -
+printf '%s\n' 'ce3c45e7f5d6cb877b357f035a70e3015d00818a5a1d354e714ea28340ae3bf9  go.mod' 'a90a6478c08aa41ef8201589a0ec5ab4e12b9271e8cfee538bb199f3386e2553  go.sum' | sha256sum -c -
 export GOFLAGS=-mod=readonly GOTOOLCHAIN=local GOMAXPROCS=2
 test "$(go version | cut -d ' ' -f 3)" = go1.27.4
 git apply /out/scripts/patches/0000-approved-prebuilt-profiles.patch
 git apply /out/scripts/patches/0001-flowsteward-neo4j-safety.patch
-git apply /out/scripts/patches/0000-neo4j-latest-driver.patch
-printf '%s\n' '2323795f12a07bdb1edf46b2e92083026d282547f4d5bb49aee55e5dbebf0a1d  go.mod' '119cf57e2df0d3d7aa5ba6b8bc7ed27db84d6aa6a502b10bf48553de447c1d4d  go.sum' | sha256sum -c -
 go mod download github.com/neo4j/neo4j-go-driver/v6
 cp -a /go/pkg/mod/github.com/neo4j/neo4j-go-driver/v6@v6.4.0 /driver
 chmod -R u+w /driver
@@ -31,7 +29,7 @@ export SOURCE_DATE_EPOCH=1793908560
 for target in linux-amd64 linux-arm64; do
  arch=${target#linux-}
  mkdir -p /out/bin/$target
- CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -p 1 -trimpath -buildvcs=false -ldflags "-s -w -buildid= -X github.com/googleapis/mcp-toolbox/cmd.buildType=flowsteward.neo4j -X github.com/googleapis/mcp-toolbox/cmd.commitSha=06ea49d9a487a72c22419b5a8d5c22c11f0d7485" -o /out/bin/$target/toolbox .
+ CGO_ENABLED=0 GOOS=linux GOARCH=$arch go build -p 1 -trimpath -buildvcs=false -ldflags "-s -w -buildid= -X github.com/googleapis/mcp-toolbox/cmd.buildType=flowsteward.neo4j -X github.com/googleapis/mcp-toolbox/cmd.commitSha=45ed205cc8682ed066c82e0b65bcd0e8fc3becce" -o /out/bin/$target/toolbox .
  chmod 0755 /out/bin/$target/toolbox
  echo "[PASS] $target $(stat -c %s /out/bin/$target/toolbox) bytes"
 done

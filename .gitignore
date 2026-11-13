@@ -8,3 +8,10 @@ __pycache__/
 /dist/
 /logs/
 /tests/live-neo4j.local.json
+
+# Native CI outputs; reviewed build recipes remain tracked.
+/toolbox-provenance.json
+/SHA256SUMS
+/scripts/go-toolchain-selected.json
+/neo4j-driver-provenance.json
+/bin/

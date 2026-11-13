@@ -15,7 +15,7 @@ import zipfile
 from pathlib import Path
 
 EXTENSION_ID = "flowsteward.neo4j"
-VERSION = "1.0.8"
+VERSION = "1.0.9"
 TOP_FOLDER = "flowsteward_neo4j"
 SOURCE_DATE_EPOCH = 1793908560
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
@@ -55,6 +55,7 @@ def sha256(path: Path) -> str:
 
 def _payload_paths(root: Path, target: str) -> list[Path]:
     paths = []
+    # Walk the build tree, including ignored CI-generated native provenance.
     for directory, directories, files in os.walk(root, followlinks=False):
         parent = Path(directory)
         directories[:] = sorted(
@@ -137,6 +138,10 @@ def package_extension(root: Path, target: str, out_dir: Path) -> Path:
     for required in (
         "LICENSE",
         "NOTICE",
+        "toolbox-provenance.json",
+        "SHA256SUMS",
+        "neo4j-driver-provenance.json",
+        "scripts/go-toolchain-selected.json",
         "extension.yaml",
         "extension-descriptor.yaml",
     ):

@@ -1,9 +1,9 @@
 {
   "source": "https://github.com/googleapis/mcp-toolbox",
-  "upstream_tag": "v1.16.0",
-  "upstream_commit": "06ea49d9a487a72c22419b5a8d5c22c11f0d7485",
-  "tag": "v1.16.0",
-  "commit": "06ea49d9a487a72c22419b5a8d5c22c11f0d7485",
+  "upstream_tag": "v1.17.0",
+  "upstream_commit": "45ed205cc8682ed066c82e0b65bcd0e8fc3becce",
+  "tag": "v1.17.0",
+  "commit": "45ed205cc8682ed066c82e0b65bcd0e8fc3becce",
   "go_image": "golang:1.27.3-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0",
   "source_date_epoch": 1793908560,
   "patch": "scripts/patches/0001-flowsteward-neo4j-safety.patch",
@@ -20,11 +20,9 @@
     "replacement": "/driver",
     "patch": "scripts/patches/0002-neo4j-driver-socket-dialer.patch"
   },
-  "module_overlay": {
-    "patch": "scripts/patches/0000-neo4j-latest-driver.patch",
-    "sha256": "c25f639ecdc3bf163dadba7afb33351c7e78f471cde95fff14c74597578af9d0",
-    "go.mod": "2323795f12a07bdb1edf46b2e92083026d282547f4d5bb49aee55e5dbebf0a1d",
-    "go.sum": "119cf57e2df0d3d7aa5ba6b8bc7ed27db84d6aa6a502b10bf48553de447c1d4d"
-  },
-  "go_image_role": "bootstrap"
+  "go_image_role": "bootstrap",
+  "module_lock": {
+    "go.mod": "ce3c45e7f5d6cb877b357f035a70e3015d00818a5a1d354e714ea28340ae3bf9",
+    "go.sum": "a90a6478c08aa41ef8201589a0ec5ab4e12b9271e8cfee538bb199f3386e2553"
+  }
 }

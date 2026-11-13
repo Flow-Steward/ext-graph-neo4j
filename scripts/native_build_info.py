@@ -42,6 +42,21 @@ def build_info(binary: Path) -> tuple[str, dict[str, str], str]:
     return version, modules, raw
 
 
+def replacements(raw: str) -> dict[str, dict[str, str]]:
+    """Preserve effective local replacements exactly as encoded by the Go linker."""
+    result = {}
+    previous = None
+    for line in raw.splitlines():
+        fields = line.split("\t")
+        if fields[0] == "dep":
+            previous = fields[1]
+        elif fields[0] == "=>":
+            if previous is None or previous in result or len(fields) not in (3, 4):
+                raise ValueError("invalid Go replacement build information")
+            result[previous] = {"path": fields[1], "version": fields[2], "sum": fields[3] if len(fields) == 4 else ""}
+    return result
+
+
 def record(root: Path) -> None:
     path = root / "toolbox-provenance.json"
     info = json.loads(path.read_text())
@@ -57,7 +72,15 @@ def record(root: Path) -> None:
             "go_version": version,
             "modules": modules,
             "build_info": raw,
+            "replacements": replacements(raw),
         })
+    # The source is the reviewed v6.4.0 module plus the socket patch; the linked
+    # local replacement is accurately reported as /driver (devel).
+    driver = dict(info["driver"])
+    driver["upstream_module"] = {"name": driver["module"], "version": driver["version"], "sum": driver["module_sum"]}
+    driver["linked_replacements"] = {target: entry["replacements"][driver["module"]] for target, entry in info["binaries"].items()}
+    driver["toolbox_source_commit"] = info["commit"]
+    (root / "neo4j-driver-provenance.json").write_text(json.dumps(driver, indent=2) + "\n")
     path.write_text(json.dumps(info, indent=2) + "\n")
     (root / "SHA256SUMS").write_text("".join(
         entry["sha256"] + "  " + entry["path"] + "\n"
@@ -76,8 +99,8 @@ def check_security_floor(version: str, modules: dict[str, str], raw: str) -> Non
         fields = line.split("\t")
         if fields[0] == "dep":
             previous = fields[1]
-        elif fields[0] == "=>" and previous in floors:
-            if not (previous == "github.com/neo4j/neo4j-go-driver/v6" and modules.get(previous) == "v6.4.0" and fields[1:3] == ["/driver", "(devel)"]):
+        elif fields[0] == "=>":
+            if not (previous == "github.com/neo4j/neo4j-go-driver/v6" and modules.get(previous) == "v6.4.0" and fields[1:3] == ["/driver", "(devel)"] and not any(fields[3:])):
                 raise ValueError(f"security-sensitive module has an unmodeled replacement: {previous}")
     def release(value):
         match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+incompatible)?", value)
@@ -94,23 +117,32 @@ def verify_security(root: Path, target: str, provenance: dict) -> None:
     version, modules, raw = build_info(binary)
     check_security_floor(version, modules, raw)
     entry = provenance["binaries"][target]
-    expected = {"path": f"bin/{target}/toolbox", "go_version": version, "modules": modules, "build_info": raw}
+    expected = {"path": f"bin/{target}/toolbox", "go_version": version, "modules": modules, "build_info": raw, "replacements": replacements(raw)}
     if any(entry.get(key) != value for key, value in expected.items()):
         raise ValueError("native build information does not match provenance")
-    if provenance.get("commit") != "06ea49d9a487a72c22419b5a8d5c22c11f0d7485":
+    if provenance.get("commit") != "45ed205cc8682ed066c82e0b65bcd0e8fc3becce":
         raise ValueError("native source commit does not match the reviewed baseline")
     if provenance.get("go_image") != "golang:1.27.3-bookworm@sha256:dc0963f32053e4bc451d24d87e3892d42d01021b61f093e98eb95c0352bb84b0":
         raise ValueError("native build image does not match the reviewed baseline")
-    if (provenance.get("source"), provenance.get("upstream_tag"), provenance.get("upstream_commit")) != ("https://github.com/googleapis/mcp-toolbox", "v1.16.0", "06ea49d9a487a72c22419b5a8d5c22c11f0d7485"):
+    if (provenance.get("source"), provenance.get("upstream_tag"), provenance.get("upstream_commit")) != ("https://github.com/googleapis/mcp-toolbox", "v1.17.0", "45ed205cc8682ed066c82e0b65bcd0e8fc3becce"):
         raise ValueError("native upstream source identity does not match the reviewed baseline")
-    overlay = provenance.get("module_overlay", {})
-    overlay_path = root / "scripts/patches/0000-neo4j-latest-driver.patch"
-    if overlay.get("sha256") != "c25f639ecdc3bf163dadba7afb33351c7e78f471cde95fff14c74597578af9d0" or not overlay_path.is_file() or overlay_path.is_symlink() or hashlib.sha256(overlay_path.read_bytes()).hexdigest() != overlay["sha256"]:
-        raise ValueError("native Neo4j latest module overlay is missing or changed")
+    replacement = {"path": "/driver", "version": "(devel)", "sum": ""}
+    if replacements(raw) != {"github.com/neo4j/neo4j-go-driver/v6": replacement}:
+        raise ValueError("native Neo4j linked replacement identity does not match the reviewed source")
     driver = provenance.get("driver", {})
     driver_patch = root / "scripts/patches/0002-neo4j-driver-socket-dialer.patch"
-    if driver.get("version") != "v6.4.0" or driver.get("module_sum") != "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=" or driver.get("upstream_commit") != "dd3f3684b7f331acc53ae0592a03c4e24a5c5059" or driver.get("replacement") != "/driver" or not driver_patch.is_file() or driver_patch.is_symlink() or (hashlib.sha256(driver_patch.read_bytes()).hexdigest() != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5" or driver.get("patch_sha256") != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5"):
+    if driver.get("module") != "github.com/neo4j/neo4j-go-driver/v6" or driver.get("source") != "https://github.com/neo4j/neo4j-go-driver" or driver.get("patch") != "scripts/patches/0002-neo4j-driver-socket-dialer.patch" or driver.get("version") != "v6.4.0" or driver.get("module_sum") != "h1:ffYRs1oVWvFDN51qu6ucUwsuPN2eWDls4q7j0PV3zBM=" or driver.get("upstream_commit") != "dd3f3684b7f331acc53ae0592a03c4e24a5c5059" or driver.get("replacement") != "/driver" or not driver_patch.is_file() or driver_patch.is_symlink() or (hashlib.sha256(driver_patch.read_bytes()).hexdigest() != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5" or driver.get("patch_sha256") != "b6782e37efbb9f85fcafd116c7253d15386c895ac32484ea055fcab976284da5"):
         raise ValueError("native reviewed Neo4j driver identity does not match provenance")
+    safety_path = root / 'scripts/patches/0001-flowsteward-neo4j-safety.patch'
+    if provenance.get("patch") != 'scripts/patches/0001-flowsteward-neo4j-safety.patch' or provenance.get("patch_sha256") != '2ec6cdb04a149b19ceec03b4c739ec28ff461f793e9481c84f46b18a3965ed46' or not safety_path.is_file() or safety_path.is_symlink() or hashlib.sha256(safety_path.read_bytes()).hexdigest() != '2ec6cdb04a149b19ceec03b4c739ec28ff461f793e9481c84f46b18a3965ed46':
+        raise ValueError("native connector safety patch is missing or changed")
+    driver_info_path = root / "neo4j-driver-provenance.json"
+    expected_driver = dict(driver)
+    expected_driver["upstream_module"] = {"name": driver["module"], "version": driver["version"], "sum": driver["module_sum"]}
+    expected_driver["linked_replacements"] = {runtime_target: {"path": "/driver", "version": "(devel)", "sum": ""} for runtime_target in ("linux-amd64", "linux-arm64")}
+    expected_driver["toolbox_source_commit"] = provenance["commit"]
+    if not driver_info_path.is_file() or driver_info_path.is_symlink() or json.loads(driver_info_path.read_text()) != expected_driver:
+        raise ValueError("native Neo4j driver provenance does not match effective linked source")
     profile = provenance.get("approved_profiles", {})
     profile_path = root / "scripts/patches/0000-approved-prebuilt-profiles.patch"
     profile_digest = "df264c60006ad1a01812b427fb6a9593115ddd86227fc9522b8bae6731616aca"
@@ -136,7 +168,7 @@ def verify_security(root: Path, target: str, provenance: dict) -> None:
     if not selected_path.is_file() or selected_path.is_symlink() or json.loads(selected_path.read_text()) != selected:
         raise ValueError("native selected compiler metadata is missing or changed")
     baseline = provenance.get("security_baseline", {})
-    digest = "958ad7a46b015c6520d1c60037c4e6fab41e756d417a618c612f08ac8806dfe7"
+    digest = "1d59fb359f69dc0a15d9e74b33347a60cd7328c60e53abfeb753faad264663fe"
     if baseline != {"patch": "scripts/patches/0000-security-baseline.patch", "sha256": digest}:
         raise ValueError("native dependency baseline does not match provenance")
     path = root / baseline["patch"]

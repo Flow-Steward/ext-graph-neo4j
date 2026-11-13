@@ -1,5 +1,5 @@
-Flow Steward Neo4j safety port for MCP Toolbox v1.16.0
-Upstream commit: 06ea49d9a487a72c22419b5a8d5c22c11f0d7485
+Flow Steward Neo4j safety port for MCP Toolbox v1.17.0
+Upstream commit: 45ed205cc8682ed066c82e0b65bcd0e8fc3becce
 
 diff --git a/internal/sources/neo4j/neo4j.go b/internal/sources/neo4j/neo4j.go
 index 5668e217f0..735fc671a6 100644

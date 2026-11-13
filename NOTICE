@@ -1,8 +1,8 @@
 Flow Steward Neo4j extension
 Copyright 2026 Flow Steward contributors
 
-This extension packages modified Google MCP Toolbox for Databases v1.16.0,
-commit 06ea49d9a487a72c22419b5a8d5c22c11f0d7485.
+This extension packages modified Google MCP Toolbox for Databases v1.17.0,
+commit 45ed205cc8682ed066c82e0b65bcd0e8fc3becce.
 Copyright Google LLC, Apache-2.0 (included in LICENSE).
 Source: https://github.com/googleapis/mcp-toolbox
 
@@ -11,7 +11,7 @@ explicit bounded transactions without managed retries, safe large integer
 serialization and controlled network policy. Only Neo4j source and static
 Cypher tool packages are registered.
 
-The included Neo4j Go driver v6.0.0 is modified with a policy dial hook and
+The included Neo4j Go driver v6.4.0 is modified with a policy dial hook and
 bounded Bolt messages. Driver source: https://github.com/neo4j/neo4j-go-driver
 Copyright Neo4j Sweden AB; Apache-2.0. Both source patches, build pins and
 native provenance accompany the extension.
