@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.14 - 2026-11-20
+
+- Package the reviewed Git revision and the verified runtime binary with its declared build provenance. Unexpected workspace files stop packaging.
+
 ## 1.0.13
 
 - Rebuild Linux AMD64 and ARM64 native payloads with grpc-gateway v2.34.0 and its required indirect modules on the pinned Toolbox v1.17.0 and verified Go 1.27.4 baseline.

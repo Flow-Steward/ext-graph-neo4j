@@ -6,26 +6,55 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import stat
+import subprocess
+import tarfile
 import tempfile
 import time
 import zipfile
 from pathlib import Path
 
 EXTENSION_ID = "flowsteward.neo4j"
-VERSION = "1.0.13"
+VERSION = "1.0.14"
 TOP_FOLDER = "flowsteward_neo4j"
 SOURCE_DATE_EPOCH = 1793908560
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
 MAX_UNCOMPRESSED_BYTES = 150 * 1024 * 1024
 MACHINES = {"linux-amd64": 62, "linux-arm64": 183}
-PAYLOAD_DIRECTORIES = frozenset({"bin", "contracts", "ui", "scripts", "tests", "wheels"})
+PAYLOAD_DIRECTORIES = frozenset({"contracts", "docs", "scripts", "tests", "ui"})
+PAYLOAD_FILES = frozenset(
+    {
+        "BRAND-ASSETS.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        "NOTICE",
+        "README.md",
+        "commands.py",
+        "extension-descriptor.yaml",
+        "extension.yaml",
+        "health.py",
+        "icon.png",
+        "main.py",
+        "pyproject.toml",
+        "requirements-dev.txt",
+        "toolbox.py",
+        "validation.py",
+    }
+)
+GENERATED_METADATA = frozenset(
+    {
+        Path("toolbox-provenance.json"),
+        Path("SHA256SUMS"),
+        Path("neo4j-driver-provenance.json"),
+        Path("scripts/go-toolchain-selected.json"),
+    }
+)
 EXCLUDED_DIRECTORIES = frozenset(
     {
         ".git",
-        ".github",
         ".venv",
         "venv",
         ".fs-python",
@@ -40,9 +69,7 @@ EXCLUDED_DIRECTORIES = frozenset(
         ".cache",
     }
 )
-EXCLUDED_FILES = frozenset(
-    {".fs-package.yaml", ".fs-extension-install.yaml", "live-neo4j.local.json"}
-)
+CONTROL_FILES = frozenset({".gitattributes", ".gitignore"})
 
 
 def sha256(path: Path) -> str:
@@ -53,30 +80,47 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _payload_paths(root: Path, target: str) -> list[Path]:
-    paths = []
-    # Walk the build tree, including ignored CI-generated native provenance.
+def _snapshot(root: Path) -> tuple[dict[Path, tuple[bytes, int]], set[Path]]:
+    try:
+        top = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], cwd=root)
+        if Path(os.fsdecode(top).rstrip("\n")).resolve() != root:
+            raise ValueError("Packaging requires the root of a Git checkout")
+        source = subprocess.check_output(["git", "archive", "--format=tar", "HEAD"], cwd=root)
+    except subprocess.CalledProcessError as exc:
+        raise ValueError("Packaging requires a committed Git source tree") from exc
+    payload = {}
+    tracked = set()
+    with tarfile.open(fileobj=io.BytesIO(source), mode="r:") as archive:
+        for member in archive:
+            path = Path(member.name)
+            tracked.add(path)
+            if member.isdir() or path.parts[0] == ".github" or member.name in CONTROL_FILES:
+                continue
+            if not member.isfile() or (
+                path.parts[0] not in PAYLOAD_DIRECTORIES and member.name not in PAYLOAD_FILES
+            ):
+                raise ValueError(f"Unexpected package input: {path}")
+            with archive.extractfile(member) as content:
+                payload[path] = (content.read(), 0o755 if member.mode & 0o111 else 0o644)
+    return payload, tracked
+
+
+def _check_workspace(root: Path, out_dir: Path, approved: set[Path]) -> None:
+    approved = approved | {parent for path in approved for parent in path.parents}
     for directory, directories, files in os.walk(root, followlinks=False):
-        parent = Path(directory)
-        directories[:] = sorted(
-            name
-            for name in directories
-            if name not in EXCLUDED_DIRECTORIES and not (parent / name).is_symlink()
-        )
-        for name in sorted(files):
-            path = parent / name
+        base = Path(directory)
+        for name in (*directories, *files):
+            path = base / name
             relative = path.relative_to(root)
-            if path.is_symlink() or name in EXCLUDED_FILES or name.endswith((".pyc", ".pyo")):
+            if path.is_symlink():
+                raise ValueError(f"Unexpected package input: {relative}")
+            if name in directories and (name in EXCLUDED_DIRECTORIES or path == out_dir):
+                directories.remove(name)
                 continue
-            if relative.parts[0] == "bin" and relative != Path("bin") / target / "toolbox":
-                # Foreign targets are omitted; unexpected files in the selected target fail closed.
-                if len(relative.parts) > 1 and relative.parts[1] == target:
-                    raise ValueError("Target directory must contain exactly one native executable")
+            if relative == Path(".git") or (name in directories and path in out_dir.parents):
                 continue
-            if not path.is_file():
-                raise ValueError(f"Package input is not a regular file: {relative}")
-            paths.append(path)
-    return sorted(paths)
+            if relative not in approved or (name in files and not path.is_file()):
+                raise ValueError(f"Unexpected package input: {relative}")
 
 
 def _native_metadata(root: Path, target: str) -> dict[str, str]:
@@ -128,13 +172,27 @@ def package_extension(root: Path, target: str, out_dir: Path) -> Path:
     if target not in MACHINES:
         raise ValueError("Unsupported runtime target")
     root = root.resolve(strict=True)
-    native = _native_metadata(root, target)
     out_dir = out_dir.resolve()
     if out_dir == root:
         raise ValueError("Output directory must differ from the extension root")
-    if out_dir.is_relative_to(root) and out_dir.relative_to(root).parts[0] in PAYLOAD_DIRECTORIES:
+    if out_dir.is_relative_to(root) and out_dir.relative_to(root).parts[
+        0
+    ] in PAYLOAD_DIRECTORIES | {"bin"}:
         raise ValueError("Output directory must not overlap release payload directories")
-    paths = [path for path in _payload_paths(root, target) if out_dir not in path.parents]
+    payload, tracked = _snapshot(root)
+    native_paths = {Path("bin") / runtime / "toolbox" for runtime in MACHINES}
+    _check_workspace(root, out_dir, tracked | GENERATED_METADATA | native_paths)
+    native = _native_metadata(root, target)
+    for relative in GENERATED_METADATA | {Path(native["path"])}:
+        path = root / relative
+        if not path.is_file():
+            raise ValueError(f"Required release file missing: {relative}")
+        if path.stat().st_size > MAX_UNCOMPRESSED_BYTES:
+            raise ValueError("Extension archive exceeds installer uncompressed-size limit")
+        payload[relative] = (
+            path.read_bytes(),
+            0o755 if relative.as_posix() == native["path"] else 0o644,
+        )
     for required in (
         "LICENSE",
         "NOTICE",
@@ -145,13 +203,13 @@ def package_extension(root: Path, target: str, out_dir: Path) -> Path:
         "extension.yaml",
         "extension-descriptor.yaml",
     ):
-        if root / required not in paths:
+        if Path(required) not in payload:
             raise ValueError(f"Required release file missing: {required}")
     metadata = (
         json.dumps({"runtime_target": target, "native_executable": native}, sort_keys=True).encode()
         + b"\n"
     )
-    if sum(path.stat().st_size for path in paths) + len(metadata) > MAX_UNCOMPRESSED_BYTES:
+    if sum(len(data) for data, _ in payload.values()) + len(metadata) > MAX_UNCOMPRESSED_BYTES:
         raise ValueError("Extension archive exceeds installer uncompressed-size limit")
     out_dir.mkdir(parents=True, exist_ok=True)
     destination = out_dir / f"{EXTENSION_ID}-{VERSION}-{target}.zip"
@@ -160,9 +218,8 @@ def package_extension(root: Path, target: str, out_dir: Path) -> Path:
     pending = Path(temporary)
     try:
         with zipfile.ZipFile(pending, "w") as archive:
-            for path in paths:
-                relative = path.relative_to(root).as_posix()
-                data = path.read_bytes()
+            for path, (data, mode) in sorted(payload.items()):
+                relative = path.as_posix()
                 if data.startswith(b"\x7fELF") and relative != native["path"]:
                     raise ValueError("Package must contain exactly one native executable")
                 if (
@@ -170,7 +227,6 @@ def package_extension(root: Path, target: str, out_dir: Path) -> Path:
                     and hashlib.sha256(data).hexdigest() != native["sha256"]
                 ):
                     raise ValueError("Native executable changed during packaging")
-                mode = 0o755 if path.stat().st_mode & 0o111 else 0o644
                 _write_entry(archive, relative, data, mode)
             _write_entry(archive, ".fs-package.yaml", metadata, 0o644)
         if pending.stat().st_size > MAX_ARCHIVE_BYTES:

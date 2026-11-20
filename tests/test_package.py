@@ -5,6 +5,7 @@ import importlib.util
 import json
 import stat
 import shutil
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -21,6 +22,92 @@ def packager():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def freeze_source(root, *paths):
+    subprocess.run(["git", "init", "--quiet", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "--", *paths], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(root),
+            "-c",
+            "user.name=Fixture",
+            "-c",
+            "user.email=fixture@example.test",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--quiet",
+            "-m",
+            "Package fixture",
+        ],
+        check=True,
+    )
+
+
+@pytest.fixture
+def staged_source(monkeypatch, tmp_path):
+    module = packager()
+    root = tmp_path / "source"
+    root.mkdir()
+    for filename in ("extension.yaml", "extension-descriptor.yaml", "LICENSE", "NOTICE", "main.py"):
+        (root / filename).write_text("reviewed release content\n")
+    (root / ".gitignore").write_text("local-settings.txt\n")
+    freeze_source(root, ".")
+    native_path = "bin/linux-amd64/toolbox"
+    binary = root / native_path
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"native input fixture")
+    binary.chmod(0o755)
+    foreign = root / "bin/linux-arm64/toolbox"
+    foreign.parent.mkdir(parents=True)
+    foreign.write_bytes(b"foreign target fixture")
+    for filename in (
+        "toolbox-provenance.json",
+        "SHA256SUMS",
+        "neo4j-driver-provenance.json",
+        "scripts/go-toolchain-selected.json",
+    ):
+        metadata = root / filename
+        metadata.parent.mkdir(parents=True, exist_ok=True)
+        metadata.write_text("generated metadata fixture\n")
+    monkeypatch.setattr(
+        module,
+        "_native_metadata",
+        lambda _root, _target: {
+            "path": native_path,
+            "sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
+        },
+    )
+    return module, root
+
+
+@pytest.mark.parametrize("name", [".unlisted", "local-settings.txt", "extra/notes.txt"])
+def test_release_rejects_unreviewed_workspace_files(staged_source, tmp_path, name):
+    module, root = staged_source
+    entry = root / name
+    entry.parent.mkdir(parents=True, exist_ok=True)
+    entry.write_text("local-only fixture")
+
+    with pytest.raises(ValueError, match="Unexpected package input"):
+        module.package_extension(root, "linux-amd64", tmp_path / "out")
+
+    assert not list((tmp_path / "out").glob("*.zip"))
+
+
+def test_release_freezes_source_and_includes_only_selected_target(staged_source, tmp_path):
+    module, root = staged_source
+    (root / "main.py").write_text("edited local content\n")
+
+    path = module.package_extension(root, "linux-amd64", tmp_path / "out")
+
+    with zipfile.ZipFile(path) as archive:
+        assert archive.read("flowsteward_neo4j/main.py") == b"reviewed release content\n"
+        assert [name for name in archive.namelist() if "/bin/" in name] == [
+            "flowsteward_neo4j/bin/linux-amd64/toolbox",
+        ]
 
 
 @pytest.fixture
@@ -98,6 +185,20 @@ def source(tmp_path):
         "go-toolchain-selected.json",
     ):
         shutil.copyfile(ROOT / "scripts" / name, root / "scripts" / name)
+    freeze_source(
+        root,
+        "extension.yaml",
+        "extension-descriptor.yaml",
+        "LICENSE",
+        "NOTICE",
+        "main.py",
+        "scripts/patches",
+        "scripts/native_build_info.py",
+        "scripts/package_extension.py",
+        "scripts/security-floor.json",
+        "scripts/install-go-toolchain.sh",
+        "scripts/go-toolchain-sources.json",
+    )
     return root
 
 
@@ -105,7 +206,6 @@ def source(tmp_path):
 def test_archive_is_reproducible_and_contains_one_declared_target(source, tmp_path, target):
     module = packager()
     for name in (
-        ".git",
         ".venv",
         ".fs-python",
         "dev-wheels",
@@ -116,16 +216,9 @@ def test_archive_is_reproducible_and_contains_one_declared_target(source, tmp_pa
     ):
         (source / name).mkdir()
         (source / name / "secret").write_text("exclude")
-    for name in (
-        "live-neo4j.local.json",
-        ".fs-package.yaml",
-        ".fs-extension-install.yaml",
-    ):
-        (source / name).write_text("exclude")
-    (source / "outside-link").symlink_to(tmp_path / "secret")
     first = module.package_extension(source, target, tmp_path / "one")
     second = module.package_extension(source, target, tmp_path / "two")
-    assert first.name == f"flowsteward.neo4j-1.0.13-{target}.zip"
+    assert first.name == f"flowsteward.neo4j-1.0.14-{target}.zip"
     assert first.read_bytes() == second.read_bytes()
     prefix = "flowsteward_neo4j/"
     with zipfile.ZipFile(first) as archive:
