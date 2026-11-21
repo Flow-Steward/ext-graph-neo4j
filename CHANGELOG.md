@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.15 - 2026-11-21
+
+- Refresh the reviewed Toolbox Go dependency lock and rebuild both Linux runtime targets.
+
 ## 1.0.14 - 2026-11-20
 
 - Package the reviewed Git revision and the verified runtime binary with its declared build provenance. Unexpected workspace files stop packaging.
