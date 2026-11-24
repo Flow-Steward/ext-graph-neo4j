@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 class NativeBuildTests(unittest.TestCase):
     def test_pinned_source_and_patch(self):
         provenance = json.loads((ROOT / "toolbox-provenance.json").read_text())
-        self.assertEqual(provenance["tag"], "v1.17.0")
-        self.assertEqual(provenance["commit"], "45ed205cc8682ed066c82e0b65bcd0e8fc3becce")
+        self.assertEqual(provenance["tag"], "v1.18.0")
+        self.assertEqual(provenance["commit"], "24762d91babd43d91afc3daeeece1cb446266c54")
         self.assertIn("@sha256:", provenance["go_image"])
         for entry in (provenance, provenance["driver"]):
             self.assertEqual(
