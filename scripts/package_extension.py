@@ -18,7 +18,7 @@ import zipfile
 from pathlib import Path
 
 EXTENSION_ID = "flowsteward.neo4j"
-VERSION = "1.0.16"
+VERSION = "1.0.17"
 TOP_FOLDER = "flowsteward_neo4j"
 SOURCE_DATE_EPOCH = 1793908560
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
